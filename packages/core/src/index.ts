@@ -18,3 +18,6 @@ export { registerBuiltInRules } from './rules/built-in/index.js';
 
 // Reporter
 export * from './reporter/index.js';
+
+// Policy
+export * from './policy/index.js';

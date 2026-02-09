@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://extension-guard.dev/schemas/policy.v1.json",
+  "title": "Extension Guard Policy Configuration",
+  "description": "Schema for Extension Guard policy files that define security standards for VSCode extensions",
+  "type": "object",
+  "required": ["version"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version for the policy file",
+      "enum": ["1"],
+      "default": "1"
+    },
+    "scanning": {
+      "type": "object",
+      "description": "Scanning behavior configuration",
+      "additionalProperties": false,
+      "properties": {
+        "minSeverity": {
+          "type": "string",
+          "description": "Minimum severity level to report (findings below this are ignored)",
+          "enum": ["critical", "high", "medium", "low", "info"],
+          "default": "info"
+        },
+        "skipRules": {
+          "type": "array",
+          "description": "Rule IDs to skip during scanning",
+          "items": {
+            "type": "string",
+            "pattern": "^EG-[A-Z]+-[0-9]+$"
+          },
+          "uniqueItems": true,
+          "examples": [["EG-HIGH-001", "EG-MED-001"]]
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Scan timeout in milliseconds",
+          "minimum": 1000,
+          "maximum": 600000,
+          "default": 30000
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "description": "Policy enforcement configuration",
+      "additionalProperties": false,
+      "properties": {
+        "allowlist": {
+          "type": "array",
+          "description": "Extension IDs that are always allowed (bypass policy checks)",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+\\.[a-z0-9-]+$"
+          },
+          "uniqueItems": true,
+          "examples": [["ms-python.python", "esbenp.prettier-vscode"]]
+        },
+        "blocklist": {
+          "type": "array",
+          "description": "Extension IDs that are always blocked",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+\\.[a-z0-9-]+$"
+          },
+          "uniqueItems": true
+        },
+        "rules": {
+          "type": "object",
+          "description": "Configurable policy rules for extension evaluation",
+          "additionalProperties": false,
+          "properties": {
+            "minTrustScore": {
+              "type": "object",
+              "description": "Minimum trust score requirement",
+              "additionalProperties": false,
+              "required": ["threshold", "action"],
+              "properties": {
+                "threshold": {
+                  "type": "integer",
+                  "description": "Score threshold (0-100)",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "action": {
+                  "$ref": "#/$defs/policyAction"
+                }
+              }
+            },
+            "requireVerifiedPublisher": {
+              "type": "object",
+              "description": "Require extensions to have a verified publisher",
+              "additionalProperties": false,
+              "required": ["enabled", "action"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether this rule is enabled"
+                },
+                "action": {
+                  "$ref": "#/$defs/policyAction"
+                },
+                "exceptions": {
+                  "type": "array",
+                  "description": "Extension IDs exempt from this rule",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]+\\.[a-z0-9-]+$"
+                  },
+                  "uniqueItems": true
+                }
+              }
+            },
+            "maxDaysSinceUpdate": {
+              "type": "object",
+              "description": "Maximum days since last extension update",
+              "additionalProperties": false,
+              "required": ["days", "action"],
+              "properties": {
+                "days": {
+                  "type": "integer",
+                  "description": "Maximum allowed days since last update",
+                  "minimum": 1,
+                  "maximum": 3650
+                },
+                "action": {
+                  "$ref": "#/$defs/policyAction"
+                }
+              }
+            },
+            "blockObfuscated": {
+              "type": "object",
+              "description": "Block extensions with obfuscated code",
+              "additionalProperties": false,
+              "required": ["enabled", "action"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether this rule is enabled"
+                },
+                "action": {
+                  "$ref": "#/$defs/policyAction"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "policyAction": {
+      "type": "string",
+      "description": "Action to take when a policy rule is violated",
+      "enum": ["block", "warn", "info"]
+    }
+  },
+  "examples": [
+    {
+      "version": "1",
+      "scanning": {
+        "minSeverity": "medium",
+        "skipRules": ["EG-MED-001"],
+        "timeout": 30000
+      },
+      "policy": {
+        "allowlist": ["ms-python.python"],
+        "blocklist": ["malicious.extension"],
+        "rules": {
+          "minTrustScore": {
+            "threshold": 70,
+            "action": "block"
+          },
+          "requireVerifiedPublisher": {
+            "enabled": true,
+            "action": "warn",
+            "exceptions": ["internal.dev-tools"]
+          },
+          "maxDaysSinceUpdate": {
+            "days": 365,
+            "action": "info"
+          },
+          "blockObfuscated": {
+            "enabled": true,
+            "action": "block"
+          }
+        }
+      }
+    }
+  ]
+}
