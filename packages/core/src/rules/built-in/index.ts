@@ -2,11 +2,13 @@ import { ruleRegistry } from '../rule-registry.js';
 import { critDataExfiltration } from './crit-data-exfiltration.js';
 import { critRemoteExecution } from './crit-remote-execution.js';
 import { critCredentialAccess } from './crit-credential-access.js';
+import { highSuspiciousNetwork } from './high-suspicious-network.js';
 
 export function registerBuiltInRules(): void {
   ruleRegistry.register(critDataExfiltration);
   ruleRegistry.register(critRemoteExecution);
   ruleRegistry.register(critCredentialAccess);
+  ruleRegistry.register(highSuspiciousNetwork);
 }
 
-export { critDataExfiltration, critRemoteExecution, critCredentialAccess };
+export { critDataExfiltration, critRemoteExecution, critCredentialAccess, highSuspiciousNetwork };
