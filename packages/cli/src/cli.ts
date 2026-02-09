@@ -1,7 +1,15 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { ExtensionGuardScanner, VERSION } from '@aspect-guard/core';
+import * as fs from 'node:fs';
+import {
+  ExtensionGuardScanner,
+  VERSION,
+  JsonReporter,
+  SarifReporter,
+  MarkdownReporter,
+} from '@aspect-guard/core';
+import type { FullScanReport, Reporter } from '@aspect-guard/core';
 
 export function createCli(): Command {
   const program = new Command();
@@ -15,11 +23,13 @@ export function createCli(): Command {
     .command('scan')
     .description('Scan installed VSCode extensions')
     .option('-p, --path <paths...>', 'Custom extension paths to scan')
-    .option('-f, --format <format>', 'Output format (table|json)', 'table')
+    .option('-f, --format <format>', 'Output format (table|json|sarif|markdown)', 'table')
+    .option('-o, --output <file>', 'Output file path (default: stdout)')
     .option('-s, --severity <level>', 'Minimum severity to show', 'info')
     .option('-q, --quiet', 'Only show results, no progress')
+    .option('--include-safe', 'Include safe extensions in output')
     .action(async (options) => {
-      const isJsonOutput = options.format === 'json';
+      const isJsonOutput = options.format === 'json' || options.format === 'sarif';
       const spinner = (options.quiet || isJsonOutput) ? null : ora('Scanning extensions...').start();
 
       try {
@@ -35,10 +45,21 @@ export function createCli(): Command {
           spinner.succeed('Scan complete');
         }
 
-        if (isJsonOutput) {
-          console.log(JSON.stringify(report, null, 2));
-        } else {
+        // Generate output based on format
+        const output = generateOutput(report, options.format, {
+          includeSafe: options.includeSafe,
+        });
+
+        // Write to file or stdout
+        if (options.output) {
+          fs.writeFileSync(options.output, output);
+          if (!options.quiet) {
+            console.log(chalk.green(`Report saved to ${options.output}`));
+          }
+        } else if (options.format === 'table') {
           printTableReport(report);
+        } else {
+          console.log(output);
         }
 
         // Exit with error code if critical or high issues found
@@ -59,7 +80,36 @@ export function createCli(): Command {
   return program;
 }
 
-function printTableReport(report: Awaited<ReturnType<typeof ExtensionGuardScanner.prototype.scan>>): void {
+function generateOutput(
+  report: FullScanReport,
+  format: string,
+  options: { includeSafe?: boolean } = {}
+): string {
+  let reporter: Reporter;
+
+  switch (format) {
+    case 'json':
+      reporter = new JsonReporter();
+      break;
+    case 'sarif':
+      reporter = new SarifReporter();
+      break;
+    case 'markdown':
+      reporter = new MarkdownReporter();
+      break;
+    case 'table':
+    default:
+      // Table format is handled separately
+      return '';
+  }
+
+  return reporter.generate(report, {
+    includeSafe: options.includeSafe,
+    includeEvidence: true,
+  });
+}
+
+function printTableReport(report: FullScanReport): void {
   console.log();
   console.log(chalk.bold(`🛡️  Extension Guard v${VERSION}`));
   console.log();
@@ -72,7 +122,6 @@ function printTableReport(report: Awaited<ReturnType<typeof ExtensionGuardScanne
   console.log(chalk.dim('━'.repeat(60)));
   console.log();
 
-  // Group by risk level
   const critical = report.results.filter((r) => r.riskLevel === 'critical');
   const high = report.results.filter((r) => r.riskLevel === 'high');
   const medium = report.results.filter((r) => r.riskLevel === 'medium');
@@ -120,7 +169,7 @@ function printTableReport(report: Awaited<ReturnType<typeof ExtensionGuardScanne
   console.log();
 }
 
-function printExtensionResult(result: Awaited<ReturnType<typeof ExtensionGuardScanner.prototype.scan>>['results'][0]): void {
+function printExtensionResult(result: FullScanReport['results'][0]): void {
   console.log(`   ${chalk.bold(result.extensionId)} v${result.version}`);
   console.log(`   Publisher: ${result.metadata.publisher.name}`);
   console.log(`   Trust Score: ${result.trustScore}/100`);

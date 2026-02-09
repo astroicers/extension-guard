@@ -1,5 +1,5 @@
 import type { Reporter, ReporterOptions } from './reporter.interface.js';
-import type { FullScanReport, Finding, ScanResult } from '../types/index.js';
+import type { FullScanReport } from '../types/index.js';
 
 interface SarifRule {
   id: string;
