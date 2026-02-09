@@ -15,3 +15,6 @@ export { collectFiles, shouldCollectFile } from './scanner/file-collector.js';
 // Rules
 export * from './rules/index.js';
 export { registerBuiltInRules } from './rules/built-in/index.js';
+
+// Reporter
+export * from './reporter/index.js';
