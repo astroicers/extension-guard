@@ -8,6 +8,10 @@ const HEX_PATTERN = /(?:\\x[0-9a-fA-F]{2}){10,}/g;
 const CHAR_CODE_PATTERN = /String\.fromCharCode\s*\(\s*(?:\d+\s*,?\s*){5,}\)/g;
 const UNICODE_ESCAPE_PATTERN = /(?:\\u[0-9a-fA-F]{4}){10,}/g;
 
+// Bundled/minified files: single large JS in dist/ or out/ directory, or well-known bundler output
+const BUNDLED_FILE_PATTERN = /(?:^|\/)(?:dist|out|build|bundle)\//;
+const BUNDLED_FILE_SIZE_THRESHOLD = 100 * 1024; // 100KB — typical bundle size
+
 function calculateEntropy(str: string): number {
   const len = str.length;
   if (len === 0) return 0;
@@ -99,14 +103,20 @@ export const highObfuscatedCode: DetectionRule = {
       }
 
       // Check overall file entropy for large files
-      if (content.length > 5000) {
+      // Skip bundled/minified files (>100KB in dist/out/build dirs) — they naturally have high entropy
+      const isBundled =
+        BUNDLED_FILE_PATTERN.test(filePath) && content.length > BUNDLED_FILE_SIZE_THRESHOLD;
+
+      if (!isBundled && content.length > 5000) {
         const entropy = calculateEntropy(content);
-        if (entropy > 5.8) {
+        // Threshold raised from 5.8 to 6.2 — bundled JS with regex-heavy content
+        // (grammar definitions, URL patterns) routinely hits 5.8-6.0
+        if (entropy > 6.2) {
           evidences.push({
             filePath,
             lineNumber: 1,
             matchedPattern: 'high-entropy',
-            snippet: `File entropy: ${entropy.toFixed(2)} (threshold: 5.8)`,
+            snippet: `File entropy: ${entropy.toFixed(2)} (threshold: 6.2)`,
           });
         }
       }
