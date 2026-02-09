@@ -1,0 +1,20 @@
+{
+  "name": "benign-theme",
+  "displayName": "Benign Theme",
+  "description": "A simple color theme",
+  "version": "1.0.0",
+  "publisher": "test-publisher",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Themes"],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Benign Theme",
+        "uiTheme": "vs-dark",
+        "path": "./themes/benign-color-theme.json"
+      }
+    ]
+  }
+}
