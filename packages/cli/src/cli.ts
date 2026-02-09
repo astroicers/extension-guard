@@ -19,7 +19,8 @@ export function createCli(): Command {
     .option('-s, --severity <level>', 'Minimum severity to show', 'info')
     .option('-q, --quiet', 'Only show results, no progress')
     .action(async (options) => {
-      const spinner = options.quiet ? null : ora('Scanning extensions...').start();
+      const isJsonOutput = options.format === 'json';
+      const spinner = (options.quiet || isJsonOutput) ? null : ora('Scanning extensions...').start();
 
       try {
         const scanner = new ExtensionGuardScanner({
@@ -34,7 +35,7 @@ export function createCli(): Command {
           spinner.succeed('Scan complete');
         }
 
-        if (options.format === 'json') {
+        if (isJsonOutput) {
           console.log(JSON.stringify(report, null, 2));
         } else {
           printTableReport(report);
