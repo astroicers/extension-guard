@@ -6,5 +6,8 @@ export const VERSION = '0.1.0';
 // Types
 export * from './types/index.js';
 
-// Scanner will be exported here
-// export { ExtensionGuardScanner } from './scanner/scanner.js';
+// Scanner
+export { ExtensionGuardScanner } from './scanner/scanner.js';
+export { detectIDEPaths, IDE_PATHS, expandPath } from './scanner/ide-detector.js';
+export { readExtension, readExtensionsFromDirectory } from './scanner/extension-reader.js';
+export { collectFiles, shouldCollectFile } from './scanner/file-collector.js';
