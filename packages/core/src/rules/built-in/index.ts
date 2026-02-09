@@ -4,6 +4,7 @@ import { critRemoteExecution } from './crit-remote-execution.js';
 import { critCredentialAccess } from './crit-credential-access.js';
 import { highSuspiciousNetwork } from './high-suspicious-network.js';
 import { highObfuscatedCode } from './high-obfuscated-code.js';
+import { medExcessiveActivation } from './med-excessive-activation.js';
 
 export function registerBuiltInRules(): void {
   ruleRegistry.register(critDataExfiltration);
@@ -11,6 +12,7 @@ export function registerBuiltInRules(): void {
   ruleRegistry.register(critCredentialAccess);
   ruleRegistry.register(highSuspiciousNetwork);
   ruleRegistry.register(highObfuscatedCode);
+  ruleRegistry.register(medExcessiveActivation);
 }
 
-export { critDataExfiltration, critRemoteExecution, critCredentialAccess, highSuspiciousNetwork, highObfuscatedCode };
+export { critDataExfiltration, critRemoteExecution, critCredentialAccess, highSuspiciousNetwork, highObfuscatedCode, medExcessiveActivation };
