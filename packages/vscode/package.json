@@ -52,13 +52,12 @@
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
     "watch": "npm run build -- --watch",
-    "package": "vsce package",
+    "package": "pnpm run build && vsce package --no-dependencies",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@aspect-guard/core": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@aspect-guard/core": "workspace:*",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^2.22.0",
