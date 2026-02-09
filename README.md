@@ -12,7 +12,7 @@ Security scanner for VS Code extensions. Detect malicious behaviors, generate tr
 ## Features
 
 - **Offline scanning** - All analysis runs locally, no data uploaded
-- **Multi-IDE support** - VS Code, Cursor, Windsurf, Trae, VSCodium
+- **Multi-IDE support** - VS Code, VS Code Insiders, Cursor, Windsurf, Trae, VSCodium
 - **7 detection rules** - Data exfiltration, RCE, credential theft, obfuscation, and more
 - **Trust scoring** - 0-100 score based on findings severity
 - **Multiple output formats** - Table, JSON, SARIF (GitHub Code Scanning), Markdown
@@ -112,7 +112,7 @@ extension-guard scan --format markdown -o report.md
 ```bash
 # Scan commands
 extension-guard scan [options]
-  -i, --ide <ide>          Target IDE (vscode, cursor, windsurf, trae, vscodium)
+  -i, --ide <ide>          Target IDE (vscode, vscode-insiders, cursor, windsurf, trae, vscodium)
   -p, --path <paths...>    Custom extension paths
   -f, --format <format>    Output format (table, json, sarif, markdown)
   -o, --output <file>      Output file path

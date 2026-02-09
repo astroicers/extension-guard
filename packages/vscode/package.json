@@ -2,7 +2,7 @@
   "name": "extension-guard-vscode",
   "displayName": "Extension Guard",
   "description": "Security scanner for VS Code extensions",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "publisher": "aspect-guard",
   "license": "MIT",
   "icon": "resources/icon.png",

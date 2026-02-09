@@ -95,7 +95,7 @@ export function categorizeExtension(manifest: ExtensionManifest): ExtensionCateg
 
 function isThemeOnlyExtension(
   contributeKeys: string[],
-  contributes: Record<string, unknown>
+  _contributes: Record<string, unknown>
 ): boolean {
   const hasThemes = contributeKeys.includes('themes') || contributeKeys.includes('iconThemes');
   if (!hasThemes) return false;
