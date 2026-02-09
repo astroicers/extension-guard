@@ -4,6 +4,8 @@
   "description": "Security scanner for VS Code extensions",
   "version": "0.1.0",
   "publisher": "aspect-guard",
+  "license": "MIT",
+  "icon": "resources/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/astroicers/extension-guard"
@@ -59,6 +61,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
     "esbuild": "^0.20.0",
     "typescript": "^5.4.0"
   }
