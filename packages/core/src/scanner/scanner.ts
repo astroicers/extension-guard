@@ -16,7 +16,9 @@ import { readExtensionsFromDirectory } from './extension-reader.js';
 import { collectFiles } from './file-collector.js';
 import { VERSION } from '../index.js';
 import { RuleEngine } from '../rules/rule-engine.js';
+import { adjustFindings } from '../rules/finding-adjuster.js';
 import { registerBuiltInRules } from '../rules/built-in/index.js';
+import { categorizeExtension } from './extension-categorizer.js';
 
 // Register built-in rules once at module load
 let rulesRegistered = false;
@@ -143,7 +145,11 @@ export class ExtensionGuardScanner {
     }
 
     // Run rules
-    const findings = this.ruleEngine.run(files, manifest);
+    const rawFindings = this.ruleEngine.run(files, manifest);
+
+    // Infer extension category and adjust findings for expected behavior
+    const category = categorizeExtension(manifest);
+    const findings = adjustFindings(rawFindings, category);
 
     // Calculate trust score
     const trustScore = this.calculateTrustScore(findings);

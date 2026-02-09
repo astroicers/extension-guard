@@ -5,6 +5,9 @@ import type { ExtensionManifest } from '../../types/index.js';
 // Minimum length for a value to be considered a potential secret
 const MIN_SECRET_LENGTH = 8;
 
+// Minimum entropy for generic-secret values — filters out natural language and config values
+const MIN_GENERIC_SECRET_ENTROPY = 3.0;
+
 // Patterns that indicate placeholder values (false positives)
 const PLACEHOLDER_PATTERNS = [
   /^your[_-]?/i,
@@ -21,6 +24,19 @@ const PLACEHOLDER_PATTERNS = [
   /^\.+$/,
   /^test$/i,
   /^demo$/i,
+];
+
+// Common false-positive values for generic-secret pattern
+// These are legitimate config/code patterns, not actual secrets
+const FALSE_POSITIVE_VALUES = [
+  /^(?:true|false|null|undefined|none)$/i,
+  /^(?:string|number|boolean|object|array|function)$/i,
+  /^(?:keyword|identifier|operator|punctuation|comment|variable|constant)$/i, // TextMate token types
+  /^(?:bearer|basic|digest)\s/i, // Auth scheme names, not actual tokens
+  /^(?:process\.env|os\.environ)/i, // Env access patterns
+  /^https?:\/\//i, // URLs
+  /^\$\{/,  // Template literals
+  /^%[sd]/,  // Format strings
 ];
 
 // File patterns to exclude (test files, examples, docs)
@@ -104,6 +120,25 @@ function isExcludedFile(filePath: string): boolean {
 
 function isPlaceholder(value: string): boolean {
   return PLACEHOLDER_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function isFalsePositiveValue(value: string): boolean {
+  return FALSE_POSITIVE_VALUES.some((pattern) => pattern.test(value));
+}
+
+function calculateSecretEntropy(str: string): number {
+  const len = str.length;
+  if (len === 0) return 0;
+  const freq: Record<string, number> = {};
+  for (const char of str) {
+    freq[char] = (freq[char] || 0) + 1;
+  }
+  let entropy = 0;
+  for (const count of Object.values(freq)) {
+    const p = count / len;
+    entropy -= p * Math.log2(p);
+  }
+  return entropy;
 }
 
 function isInComment(content: string, matchIndex: number): boolean {
@@ -192,6 +227,20 @@ export const highHardcodedSecret: DetectionRule = {
           // Skip placeholder values
           if (isPlaceholder(secretValue)) {
             continue;
+          }
+
+          // Skip known false-positive values
+          if (isFalsePositiveValue(secretValue)) {
+            continue;
+          }
+
+          // For generic-secret, require minimum entropy to filter out
+          // natural language config values like tokenType = "keyword"
+          if (secretPattern.name === 'generic-secret') {
+            const entropy = calculateSecretEntropy(secretValue);
+            if (entropy < MIN_GENERIC_SECRET_ENTROPY) {
+              continue;
+            }
           }
 
           const lineNumber = getLineNumber(content, matchIndex);
