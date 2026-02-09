@@ -12,7 +12,7 @@ export class ExtensionWatcher implements vscode.Disposable {
 
   constructor() {
     // Initialize with current extensions
-    vscode.extensions.all.forEach(ext => {
+    vscode.extensions.all.forEach((ext) => {
       this.knownExtensions.add(ext.id);
     });
 
@@ -25,11 +25,11 @@ export class ExtensionWatcher implements vscode.Disposable {
   }
 
   private async checkForNewExtensions(): Promise<void> {
-    const currentExtensions = new Set(vscode.extensions.all.map(ext => ext.id));
+    const currentExtensions = new Set(vscode.extensions.all.map((ext) => ext.id));
     const newExtensions: string[] = [];
 
     // Find newly installed extensions
-    currentExtensions.forEach(id => {
+    currentExtensions.forEach((id) => {
       if (!this.knownExtensions.has(id)) {
         newExtensions.push(id);
       }
@@ -64,7 +64,7 @@ export class ExtensionWatcher implements vscode.Disposable {
   }
 
   private notifyNewExtensions(results: ScanResult[]): void {
-    this.onNewExtensionCallbacks.forEach(callback => {
+    this.onNewExtensionCallbacks.forEach((callback) => {
       try {
         callback(results);
       } catch (error) {
@@ -81,7 +81,7 @@ export class ExtensionWatcher implements vscode.Disposable {
         if (index > -1) {
           this.onNewExtensionCallbacks.splice(index, 1);
         }
-      }
+      },
     };
   }
 
@@ -93,7 +93,7 @@ export class ExtensionWatcher implements vscode.Disposable {
         if (index > -1) {
           this.onScanCompleteCallbacks.splice(index, 1);
         }
-      }
+      },
     };
   }
 
@@ -101,7 +101,7 @@ export class ExtensionWatcher implements vscode.Disposable {
     const scanner = getScannerService();
     const report = await scanner.scanAll();
 
-    this.onScanCompleteCallbacks.forEach(callback => {
+    this.onScanCompleteCallbacks.forEach((callback) => {
       try {
         callback(report.results);
       } catch (error) {
@@ -113,7 +113,7 @@ export class ExtensionWatcher implements vscode.Disposable {
   }
 
   dispose(): void {
-    this.disposables.forEach(d => d.dispose());
+    this.disposables.forEach((d) => d.dispose());
     this.onNewExtensionCallbacks = [];
     this.onScanCompleteCallbacks = [];
   }

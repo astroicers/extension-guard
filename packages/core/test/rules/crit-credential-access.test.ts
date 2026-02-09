@@ -11,10 +11,13 @@ describe('EG-CRIT-003: Credential Access', () => {
 
   it('should detect SSH key access', () => {
     const files = new Map([
-      ['src/extension.js', `
+      [
+        'src/extension.js',
+        `
         const fs = require('fs');
         const key = fs.readFileSync('~/.ssh/id_rsa');
-      `],
+      `,
+      ],
     ]);
     const evidences = critCredentialAccess.detect(files, mockManifest);
     expect(evidences.length).toBeGreaterThan(0);
@@ -23,9 +26,12 @@ describe('EG-CRIT-003: Credential Access', () => {
 
   it('should detect AWS credentials access', () => {
     const files = new Map([
-      ['src/extension.js', `
+      [
+        'src/extension.js',
+        `
         const creds = fs.readFile('~/.aws/credentials', callback);
-      `],
+      `,
+      ],
     ]);
     const evidences = critCredentialAccess.detect(files, mockManifest);
     expect(evidences.length).toBeGreaterThan(0);
@@ -34,9 +40,12 @@ describe('EG-CRIT-003: Credential Access', () => {
 
   it('should detect .env file access', () => {
     const files = new Map([
-      ['src/extension.js', `
+      [
+        'src/extension.js',
+        `
         fs.readFileSync('.env.production');
-      `],
+      `,
+      ],
     ]);
     const evidences = critCredentialAccess.detect(files, mockManifest);
     expect(evidences.length).toBeGreaterThan(0);
@@ -45,9 +54,12 @@ describe('EG-CRIT-003: Credential Access', () => {
 
   it('should detect kube config access', () => {
     const files = new Map([
-      ['src/extension.js', `
+      [
+        'src/extension.js',
+        `
         const config = fs.readFileSync('~/.kube/config');
-      `],
+      `,
+      ],
     ]);
     const evidences = critCredentialAccess.detect(files, mockManifest);
     expect(evidences.length).toBeGreaterThan(0);
@@ -55,10 +67,13 @@ describe('EG-CRIT-003: Credential Access', () => {
 
   it('should not flag normal file operations', () => {
     const files = new Map([
-      ['src/extension.js', `
+      [
+        'src/extension.js',
+        `
         const config = fs.readFileSync('./config.json');
         const data = fs.readFileSync('./package.json');
-      `],
+      `,
+      ],
     ]);
     const evidences = critCredentialAccess.detect(files, mockManifest);
     expect(evidences).toHaveLength(0);
@@ -66,10 +81,13 @@ describe('EG-CRIT-003: Credential Access', () => {
 
   it('should not flag without file read context', () => {
     const files = new Map([
-      ['src/extension.js', `
+      [
+        'src/extension.js',
+        `
         const path = '~/.ssh/id_rsa';
         console.log('Path is:', path);
-      `],
+      `,
+      ],
     ]);
     const evidences = critCredentialAccess.detect(files, mockManifest);
     expect(evidences).toHaveLength(0);

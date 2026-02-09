@@ -1,12 +1,6 @@
 import * as vscode from 'vscode';
 import { getScannerService } from '../scanner-service';
-import {
-  OverviewItem,
-  CategoryItem,
-  ExtensionItem,
-  FindingItem,
-  ScanNowItem
-} from './items';
+import { OverviewItem, CategoryItem, ExtensionItem, FindingItem, ScanNowItem } from './items';
 
 type TreeItemType = OverviewItem | CategoryItem | ExtensionItem | FindingItem | ScanNowItem;
 
@@ -28,15 +22,11 @@ export class ExtensionGuardTreeProvider implements vscode.TreeDataProvider<TreeI
     }
 
     if (element instanceof CategoryItem) {
-      return Promise.resolve(
-        element.results.map(r => new ExtensionItem(r))
-      );
+      return Promise.resolve(element.results.map((r) => new ExtensionItem(r)));
     }
 
     if (element instanceof ExtensionItem) {
-      return Promise.resolve(
-        element.result.findings.map(f => new FindingItem(f))
-      );
+      return Promise.resolve(element.result.findings.map((f) => new FindingItem(f)));
     }
 
     return Promise.resolve([]);

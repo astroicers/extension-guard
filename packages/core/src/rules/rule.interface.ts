@@ -11,8 +11,5 @@ export interface DetectionRule {
   mitreAttackId?: string;
   enabled: boolean;
 
-  detect(
-    files: Map<string, string>,
-    manifest: ExtensionManifest
-  ): Evidence[];
+  detect(files: Map<string, string>, manifest: ExtensionManifest): Evidence[];
 }

@@ -9,9 +9,9 @@ export async function showRiskWarning(result: ScanResult): Promise<void> {
   }
 
   const topFindings = result.findings
-    .filter(f => f.severity === 'critical' || f.severity === 'high')
+    .filter((f) => f.severity === 'critical' || f.severity === 'high')
     .slice(0, 3)
-    .map(f => `• ${f.ruleId}: ${f.title}`)
+    .map((f) => `• ${f.ruleId}: ${f.title}`)
     .join('\n');
 
   const message = `⚠️ Security Risk Detected!\n\n"${result.displayName || result.extensionId}" has been flagged as ${riskLevel.toUpperCase()} RISK.\n\nTrust Score: ${result.trustScore}/100\n\nFindings:\n${topFindings}`;
@@ -38,9 +38,7 @@ export async function showRiskWarning(result: ScanResult): Promise<void> {
 }
 
 export async function showMultipleRisksWarning(results: ScanResult[]): Promise<void> {
-  const riskyResults = results.filter(r =>
-    r.riskLevel === 'critical' || r.riskLevel === 'high'
-  );
+  const riskyResults = results.filter((r) => r.riskLevel === 'critical' || r.riskLevel === 'high');
 
   if (riskyResults.length === 0) {
     return;
@@ -53,7 +51,7 @@ export async function showMultipleRisksWarning(results: ScanResult[]): Promise<v
   // Multiple risky extensions
   const extensionList = riskyResults
     .slice(0, 5)
-    .map(r => `• ${r.displayName || r.extensionId} (Score: ${r.trustScore})`)
+    .map((r) => `• ${r.displayName || r.extensionId} (Score: ${r.trustScore})`)
     .join('\n');
 
   const message = `⚠️ Multiple Security Risks Detected!\n\n${riskyResults.length} extensions flagged:\n${extensionList}${riskyResults.length > 5 ? `\n...and ${riskyResults.length - 5} more` : ''}`;
@@ -72,14 +70,16 @@ export async function showMultipleRisksWarning(results: ScanResult[]): Promise<v
 
 export function showScanComplete(totalCount: number, riskyCount: number): void {
   if (riskyCount > 0) {
-    vscode.window.showWarningMessage(
-      `Extension Guard: Scan complete. ${riskyCount} risky extension(s) found out of ${totalCount}.`,
-      'View Details'
-    ).then(selection => {
-      if (selection === 'View Details') {
-        vscode.commands.executeCommand('extensionGuardView.focus');
-      }
-    });
+    vscode.window
+      .showWarningMessage(
+        `Extension Guard: Scan complete. ${riskyCount} risky extension(s) found out of ${totalCount}.`,
+        'View Details'
+      )
+      .then((selection) => {
+        if (selection === 'View Details') {
+          vscode.commands.executeCommand('extensionGuardView.focus');
+        }
+      });
   } else {
     vscode.window.showInformationMessage(
       `Extension Guard: Scan complete. All ${totalCount} extensions are safe!`

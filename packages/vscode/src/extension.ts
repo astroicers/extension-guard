@@ -12,7 +12,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const treeProvider = getTreeProvider();
   const treeView = vscode.window.createTreeView('extensionGuardView', {
     treeDataProvider: treeProvider,
-    showCollapseAll: true
+    showCollapseAll: true,
   });
   context.subscriptions.push(treeView);
 
@@ -31,7 +31,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   watcher.onNewExtension((results) => {
     treeProvider.refresh();
     statusBar.update();
-    results.forEach(result => showNewExtensionScanned(result));
+    results.forEach((result) => showNewExtensionScanned(result));
   });
 
   // Handle scan completions
@@ -45,7 +45,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     {
       location: vscode.ProgressLocation.Notification,
       title: 'Extension Guard: Scanning extensions...',
-      cancellable: false
+      cancellable: false,
     },
     async () => {
       await watcher.performFullScan();

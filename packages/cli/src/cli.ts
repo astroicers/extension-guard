@@ -32,7 +32,7 @@ export function createCli(): Command {
     .option('--include-safe', 'Include safe extensions in output')
     .action(async (options) => {
       const isJsonOutput = options.format === 'json' || options.format === 'sarif';
-      const spinner = (options.quiet || isJsonOutput) ? null : ora('Scanning extensions...').start();
+      const spinner = options.quiet || isJsonOutput ? null : ora('Scanning extensions...').start();
 
       try {
         const scanner = new ExtensionGuardScanner({
@@ -90,7 +90,8 @@ export function createCli(): Command {
     .option('-q, --quiet', 'Only show results, no progress')
     .action(async (options) => {
       const isJsonOutput = options.format === 'json' || options.format === 'sarif';
-      const spinner = (options.quiet || isJsonOutput) ? null : ora('Loading policy configuration...').start();
+      const spinner =
+        options.quiet || isJsonOutput ? null : ora('Loading policy configuration...').start();
 
       try {
         // Load policy configuration
@@ -101,7 +102,9 @@ export function createCli(): Command {
             spinner.fail('Policy configuration not found');
           }
           console.error(chalk.red(`Error: Could not find policy config at ${options.config}`));
-          console.error(chalk.dim('Create a .extension-guard.json file or specify a path with --config'));
+          console.error(
+            chalk.dim('Create a .extension-guard.json file or specify a path with --config')
+          );
           process.exit(2);
         }
 
@@ -247,8 +250,8 @@ function printTableReport(report: FullScanReport): void {
   const { bySeverity, byRiskLevel } = report.summary;
   console.log(
     `📊 Summary: ${report.uniqueExtensions} scanned · ` +
-    `${bySeverity.critical} critical · ${bySeverity.high} high · ` +
-    `${bySeverity.medium} medium · ${byRiskLevel.safe} safe`
+      `${bySeverity.critical} critical · ${bySeverity.high} high · ` +
+      `${bySeverity.medium} medium · ${byRiskLevel.safe} safe`
   );
   console.log(`⏱️  Completed in ${(report.scanDurationMs / 1000).toFixed(1)}s`);
   console.log();
@@ -264,7 +267,9 @@ function printExtensionResult(result: FullScanReport['results'][0]): void {
       const icon = finding.severity === 'critical' ? 'CRIT' : finding.severity.toUpperCase();
       console.log(`   │ ${icon}  ${finding.title}`);
       if (finding.evidence.filePath) {
-        console.log(`   │       at ${finding.evidence.filePath}:${finding.evidence.lineNumber ?? '?'}`);
+        console.log(
+          `   │       at ${finding.evidence.filePath}:${finding.evidence.lineNumber ?? '?'}`
+        );
       }
     }
     if (result.findings.length > 3) {
@@ -289,9 +294,9 @@ function printAuditResults(violations: PolicyViolation[], failOnLevel: PolicyAct
     return;
   }
 
-  const blocked = violations.filter(v => v.action === 'block');
-  const warned = violations.filter(v => v.action === 'warn');
-  const info = violations.filter(v => v.action === 'info');
+  const blocked = violations.filter((v) => v.action === 'block');
+  const warned = violations.filter((v) => v.action === 'warn');
+  const info = violations.filter((v) => v.action === 'info');
 
   if (blocked.length > 0) {
     console.log(chalk.red.bold(`BLOCKED (${blocked.length})`));
@@ -331,7 +336,7 @@ function printAuditResults(violations: PolicyViolation[], failOnLevel: PolicyAct
 
   console.log(
     `Total: ${total} violation${total !== 1 ? 's' : ''} ` +
-    `(${blocked.length} blocked, ${warned.length} warnings, ${info.length} info)`
+      `(${blocked.length} blocked, ${warned.length} warnings, ${info.length} info)`
   );
   console.log(`Fail-on level: ${failOnLevel}`);
 
@@ -356,5 +361,5 @@ function hasViolationsAtLevel(violations: PolicyViolation[], level: PolicyAction
 
   const threshold = levelHierarchy[level];
 
-  return violations.some(v => levelHierarchy[v.action] >= threshold);
+  return violations.some((v) => levelHierarchy[v.action] >= threshold);
 }

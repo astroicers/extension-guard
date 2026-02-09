@@ -532,7 +532,10 @@ describe('PolicyEngine', () => {
         const violations = engine.evaluate(results);
 
         expect(violations).toHaveLength(2);
-        expect(violations.map(v => v.rule).sort()).toEqual(['minTrustScore', 'requireVerifiedPublisher']);
+        expect(violations.map((v) => v.rule).sort()).toEqual([
+          'minTrustScore',
+          'requireVerifiedPublisher',
+        ]);
       });
     });
 

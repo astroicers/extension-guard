@@ -11,7 +11,7 @@ export class ScannerService {
 
   async scanAll(): Promise<FullScanReport> {
     this.lastReport = await this.scanner.scan();
-    this.lastReport.results.forEach(r => this.cache.set(r.extensionId, r));
+    this.lastReport.results.forEach((r) => this.cache.set(r.extensionId, r));
     return this.lastReport;
   }
 
@@ -43,19 +43,15 @@ export class ScannerService {
 
   // Helper methods for UI
   getRiskyExtensions(): ScanResult[] {
-    return this.getAllCached().filter(r =>
-      r.riskLevel === 'critical' || r.riskLevel === 'high'
-    );
+    return this.getAllCached().filter((r) => r.riskLevel === 'critical' || r.riskLevel === 'high');
   }
 
   getMediumRiskExtensions(): ScanResult[] {
-    return this.getAllCached().filter(r => r.riskLevel === 'medium');
+    return this.getAllCached().filter((r) => r.riskLevel === 'medium');
   }
 
   getSafeExtensions(): ScanResult[] {
-    return this.getAllCached().filter(r =>
-      r.riskLevel === 'low' || r.riskLevel === 'safe'
-    );
+    return this.getAllCached().filter((r) => r.riskLevel === 'low' || r.riskLevel === 'safe');
   }
 
   getOverallTrustScore(): number {

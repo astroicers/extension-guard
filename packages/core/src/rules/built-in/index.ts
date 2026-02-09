@@ -17,4 +17,12 @@ export function registerBuiltInRules(): void {
   ruleRegistry.register(medExcessiveActivation);
 }
 
-export { critDataExfiltration, critRemoteExecution, critCredentialAccess, highSuspiciousNetwork, highObfuscatedCode, highHardcodedSecret, medExcessiveActivation };
+export {
+  critDataExfiltration,
+  critRemoteExecution,
+  critCredentialAccess,
+  highSuspiciousNetwork,
+  highObfuscatedCode,
+  highHardcodedSecret,
+  medExcessiveActivation,
+};

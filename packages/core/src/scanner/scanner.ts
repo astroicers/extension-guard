@@ -80,7 +80,10 @@ export class ExtensionGuardScanner {
       ides.map((ide) => readExtensionsFromDirectory(ide.path))
     );
 
-    const extensionMap = new Map<string, { ide: DetectedIDE; ext: Awaited<ReturnType<typeof readExtensionsFromDirectory>>[number] }>();
+    const extensionMap = new Map<
+      string,
+      { ide: DetectedIDE; ext: Awaited<ReturnType<typeof readExtensionsFromDirectory>>[number] }
+    >();
     for (let i = 0; i < ides.length; i++) {
       const ide = ides[i]!;
       for (const ext of allExtensions[i]!) {
@@ -233,9 +236,8 @@ export class ExtensionGuardScanner {
     // Calculate overall health score
     const totalExtensions = results.length;
     const safeCount = byRiskLevel.safe + byRiskLevel.low;
-    const overallHealthScore = totalExtensions > 0
-      ? Math.round((safeCount / totalExtensions) * 100)
-      : 100;
+    const overallHealthScore =
+      totalExtensions > 0 ? Math.round((safeCount / totalExtensions) * 100) : 100;
 
     return {
       byRiskLevel,

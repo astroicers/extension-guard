@@ -13,21 +13,20 @@ const SYSTEM_INFO_PATTERNS = [
   { name: 'process.env', pattern: /process\.env(?:\[|\.)/g },
 ];
 
-const HTTP_TO_IP_PATTERN = /(?:https?\.request|fetch|axios\.(?:get|post|put|request))\s*\(\s*['"`]https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/g;
+const HTTP_TO_IP_PATTERN =
+  /(?:https?\.request|fetch|axios\.(?:get|post|put|request))\s*\(\s*['"`]https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/g;
 
 export const critDataExfiltration: DetectionRule = {
   id: 'EG-CRIT-001',
   name: 'Data Exfiltration Pattern',
-  description: 'Detects code that collects system info and sends it to external servers via IP address',
+  description:
+    'Detects code that collects system info and sends it to external servers via IP address',
   severity: 'critical',
   category: 'data-exfiltration',
   mitreAttackId: 'T1041',
   enabled: true,
 
-  detect(
-    files: Map<string, string>,
-    _manifest: ExtensionManifest
-  ): Evidence[] {
+  detect(files: Map<string, string>, _manifest: ExtensionManifest): Evidence[] {
     const evidences: Evidence[] = [];
 
     for (const [filePath, content] of files) {

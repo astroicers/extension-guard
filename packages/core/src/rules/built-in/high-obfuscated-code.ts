@@ -32,10 +32,7 @@ export const highObfuscatedCode: DetectionRule = {
   mitreAttackId: 'T1027',
   enabled: true,
 
-  detect(
-    files: Map<string, string>,
-    _manifest: ExtensionManifest
-  ): Evidence[] {
+  detect(files: Map<string, string>, _manifest: ExtensionManifest): Evidence[] {
     const evidences: Evidence[] = [];
 
     for (const [filePath, content] of files) {

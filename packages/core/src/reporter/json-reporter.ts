@@ -13,11 +13,7 @@ export class JsonReporter implements Reporter {
   readonly format = 'json';
 
   generate(report: FullScanReport, options: ReporterOptions = {}): string {
-    const {
-      includeEvidence = true,
-      includeSafe = true,
-      minSeverity = 'info',
-    } = options;
+    const { includeEvidence = true, includeSafe = true, minSeverity = 'info' } = options;
 
     const filteredResults = this.filterResults(report.results, {
       includeSafe,

@@ -3,7 +3,11 @@ import type { Evidence } from '../../types/index.js';
 import type { ExtensionManifest } from '../../types/index.js';
 
 const SENSITIVE_PATHS = [
-  { name: 'ssh-keys', pattern: /['"`][^'"`]*\.ssh[/\\](?:id_rsa|id_ed25519|id_ecdsa|known_hosts|config|authorized_keys)[^'"`]*['"`]/gi },
+  {
+    name: 'ssh-keys',
+    pattern:
+      /['"`][^'"`]*\.ssh[/\\](?:id_rsa|id_ed25519|id_ecdsa|known_hosts|config|authorized_keys)[^'"`]*['"`]/gi,
+  },
   { name: 'gnupg', pattern: /['"`][^'"`]*\.gnupg[/\\][^'"`]*['"`]/gi },
   { name: 'aws-credentials', pattern: /['"`][^'"`]*\.aws[/\\]credentials[^'"`]*['"`]/gi },
   { name: 'azure-config', pattern: /['"`][^'"`]*\.azure[/\\][^'"`]*['"`]/gi },
@@ -15,21 +19,20 @@ const SENSITIVE_PATHS = [
   { name: 'netrc', pattern: /['"`][^'"`]*\.netrc[^'"`]*['"`]/gi },
 ];
 
-const FILE_READ_CONTEXT = /(?:readFile|readFileSync|createReadStream|access|accessSync|exists|existsSync|stat|statSync|open|openSync)/;
+const FILE_READ_CONTEXT =
+  /(?:readFile|readFileSync|createReadStream|access|accessSync|exists|existsSync|stat|statSync|open|openSync)/;
 
 export const critCredentialAccess: DetectionRule = {
   id: 'EG-CRIT-003',
   name: 'Credential File Access',
-  description: 'Detects attempts to read sensitive credential files like SSH keys, AWS credentials, or .env files',
+  description:
+    'Detects attempts to read sensitive credential files like SSH keys, AWS credentials, or .env files',
   severity: 'critical',
   category: 'credential-theft',
   mitreAttackId: 'T1552.004',
   enabled: true,
 
-  detect(
-    files: Map<string, string>,
-    _manifest: ExtensionManifest
-  ): Evidence[] {
+  detect(files: Map<string, string>, _manifest: ExtensionManifest): Evidence[] {
     const evidences: Evidence[] = [];
 
     for (const [filePath, content] of files) {

@@ -17,10 +17,7 @@ export class RuleEngine {
     this.options = options;
   }
 
-  run(
-    files: Map<string, string>,
-    manifest: ExtensionManifest
-  ): Finding[] {
+  run(files: Map<string, string>, manifest: ExtensionManifest): Finding[] {
     const findings: Finding[] = [];
     const rules = this.getApplicableRules();
 

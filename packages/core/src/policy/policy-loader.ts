@@ -83,7 +83,7 @@ function validateScanningConfig(scanning: unknown): void {
   }
 
   if (obj.skipRules !== undefined) {
-    if (!Array.isArray(obj.skipRules) || !obj.skipRules.every(r => typeof r === 'string')) {
+    if (!Array.isArray(obj.skipRules) || !obj.skipRules.every((r) => typeof r === 'string')) {
       throw new Error('scanning.skipRules must be an array of strings');
     }
   }
@@ -106,13 +106,13 @@ function validatePolicySection(policy: unknown): void {
   const obj = policy as Record<string, unknown>;
 
   if (obj.allowlist !== undefined) {
-    if (!Array.isArray(obj.allowlist) || !obj.allowlist.every(id => typeof id === 'string')) {
+    if (!Array.isArray(obj.allowlist) || !obj.allowlist.every((id) => typeof id === 'string')) {
       throw new Error('policy.allowlist must be an array of extension ID strings');
     }
   }
 
   if (obj.blocklist !== undefined) {
-    if (!Array.isArray(obj.blocklist) || !obj.blocklist.every(id => typeof id === 'string')) {
+    if (!Array.isArray(obj.blocklist) || !obj.blocklist.every((id) => typeof id === 'string')) {
       throw new Error('policy.blocklist must be an array of extension ID strings');
     }
   }
@@ -152,7 +152,7 @@ function validatePolicyRules(rules: unknown): void {
       throw new Error(`requireVerifiedPublisher.action must be one of: ${validActions.join(', ')}`);
     }
     if (rule.exceptions !== undefined) {
-      if (!Array.isArray(rule.exceptions) || !rule.exceptions.every(e => typeof e === 'string')) {
+      if (!Array.isArray(rule.exceptions) || !rule.exceptions.every((e) => typeof e === 'string')) {
         throw new Error('requireVerifiedPublisher.exceptions must be an array of strings');
       }
     }

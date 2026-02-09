@@ -15,16 +15,17 @@ export class CategoryItem extends vscode.TreeItem {
     public readonly category: 'high-risk' | 'medium-risk' | 'safe',
     public readonly results: ScanResult[]
   ) {
-    const label = category === 'high-risk' ? 'High Risk'
-      : category === 'medium-risk' ? 'Medium Risk'
-      : 'Safe';
-    const icon = category === 'high-risk' ? 'warning'
-      : category === 'medium-risk' ? 'alert'
-      : 'check';
+    const label =
+      category === 'high-risk' ? 'High Risk' : category === 'medium-risk' ? 'Medium Risk' : 'Safe';
+    const icon =
+      category === 'high-risk' ? 'warning' : category === 'medium-risk' ? 'alert' : 'check';
 
-    super(label, results.length > 0
-      ? vscode.TreeItemCollapsibleState.Expanded
-      : vscode.TreeItemCollapsibleState.None);
+    super(
+      label,
+      results.length > 0
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.None
+    );
 
     this.description = `(${results.length})`;
     this.iconPath = new vscode.ThemeIcon(icon);
@@ -34,19 +35,22 @@ export class CategoryItem extends vscode.TreeItem {
 
 export class ExtensionItem extends vscode.TreeItem {
   constructor(public readonly result: ScanResult) {
-    super(result.displayName || result.extensionId,
+    super(
+      result.displayName || result.extensionId,
       result.findings.length > 0
         ? vscode.TreeItemCollapsibleState.Collapsed
-        : vscode.TreeItemCollapsibleState.None);
+        : vscode.TreeItemCollapsibleState.None
+    );
 
     this.description = `Score: ${result.trustScore}`;
 
     // Icon based on risk level
-    const iconName = result.riskLevel === 'critical' || result.riskLevel === 'high'
-      ? 'error'
-      : result.riskLevel === 'medium'
-        ? 'warning'
-        : 'pass';
+    const iconName =
+      result.riskLevel === 'critical' || result.riskLevel === 'high'
+        ? 'error'
+        : result.riskLevel === 'medium'
+          ? 'warning'
+          : 'pass';
     this.iconPath = new vscode.ThemeIcon(iconName);
 
     this.tooltip = `${result.extensionId}\nVersion: ${result.version}\nTrust Score: ${result.trustScore}/100\nRisk Level: ${result.riskLevel}`;
@@ -58,11 +62,12 @@ export class FindingItem extends vscode.TreeItem {
   constructor(public readonly finding: Finding) {
     super(`${finding.ruleId}: ${finding.title}`, vscode.TreeItemCollapsibleState.None);
 
-    const iconName = finding.severity === 'critical' || finding.severity === 'high'
-      ? 'error'
-      : finding.severity === 'medium'
-        ? 'warning'
-        : 'info';
+    const iconName =
+      finding.severity === 'critical' || finding.severity === 'high'
+        ? 'error'
+        : finding.severity === 'medium'
+          ? 'warning'
+          : 'info';
     this.iconPath = new vscode.ThemeIcon(iconName);
 
     this.tooltip = finding.description;
@@ -76,7 +81,7 @@ export class ScanNowItem extends vscode.TreeItem {
     this.iconPath = new vscode.ThemeIcon('refresh');
     this.command = {
       command: 'extension-guard.scan',
-      title: 'Scan All Extensions'
+      title: 'Scan All Extensions',
     };
     this.contextValue = 'scanNow';
   }

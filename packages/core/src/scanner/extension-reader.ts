@@ -2,9 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { ExtensionInfo, ExtensionManifest } from '../types/index.js';
 
-export async function readExtension(
-  extensionPath: string
-): Promise<ExtensionInfo | null> {
+export async function readExtension(extensionPath: string): Promise<ExtensionInfo | null> {
   try {
     const packageJsonPath = path.join(extensionPath, 'package.json');
     const content = await fs.readFile(packageJsonPath, 'utf-8');
@@ -16,9 +14,8 @@ export async function readExtension(
 
     const stats = await getDirectoryStats(extensionPath);
 
-    const repository = typeof manifest.repository === 'string'
-      ? manifest.repository
-      : manifest.repository?.url;
+    const repository =
+      typeof manifest.repository === 'string' ? manifest.repository : manifest.repository?.url;
 
     return {
       id: `${manifest.publisher}.${manifest.name}`,
@@ -78,9 +75,7 @@ async function getDirectoryStats(
   return { fileCount, totalSize };
 }
 
-export async function readExtensionsFromDirectory(
-  directoryPath: string
-): Promise<ExtensionInfo[]> {
+export async function readExtensionsFromDirectory(directoryPath: string): Promise<ExtensionInfo[]> {
   const extensions: ExtensionInfo[] = [];
 
   try {
@@ -88,9 +83,7 @@ export async function readExtensionsFromDirectory(
     const directories = entries.filter((entry) => entry.isDirectory());
 
     const results = await Promise.all(
-      directories.map((dir) =>
-        readExtension(path.join(directoryPath, dir.name))
-      )
+      directories.map((dir) => readExtension(path.join(directoryPath, dir.name)))
     );
 
     for (const result of results) {

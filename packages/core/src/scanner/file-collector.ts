@@ -1,23 +1,9 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-const COLLECTED_EXTENSIONS = new Set([
-  '.js',
-  '.ts',
-  '.jsx',
-  '.tsx',
-  '.mjs',
-  '.cjs',
-  '.json',
-]);
+const COLLECTED_EXTENSIONS = new Set(['.js', '.ts', '.jsx', '.tsx', '.mjs', '.cjs', '.json']);
 
-const IGNORED_DIRECTORIES = new Set([
-  'node_modules',
-  '.git',
-  '.svn',
-  '.hg',
-  '__pycache__',
-]);
+const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', '.svn', '.hg', '__pycache__']);
 
 const IGNORED_PATTERNS = [/\.min\.js$/, /\.map$/, /\.d\.ts$/];
 
@@ -46,9 +32,7 @@ export function shouldCollectFile(filePath: string): boolean {
   return true;
 }
 
-export async function collectFiles(
-  extensionPath: string
-): Promise<Map<string, string>> {
+export async function collectFiles(extensionPath: string): Promise<Map<string, string>> {
   const files = new Map<string, string>();
 
   async function walk(currentPath: string, relativePath: string): Promise<void> {
@@ -57,9 +41,7 @@ export async function collectFiles(
 
       for (const entry of entries) {
         const fullPath = path.join(currentPath, entry.name);
-        const relPath = relativePath
-          ? path.join(relativePath, entry.name)
-          : entry.name;
+        const relPath = relativePath ? path.join(relativePath, entry.name) : entry.name;
 
         if (entry.isDirectory()) {
           if (!IGNORED_DIRECTORIES.has(entry.name)) {

@@ -5,15 +5,13 @@ import type { ExtensionManifest } from '../../types/index.js';
 export const medExcessiveActivation: DetectionRule = {
   id: 'EG-MED-001',
   name: 'Excessive Activation Events',
-  description: 'Extension uses "*" activation event which means it activates on every action, potentially for surveillance',
+  description:
+    'Extension uses "*" activation event which means it activates on every action, potentially for surveillance',
   severity: 'medium',
   category: 'excessive-permission',
   enabled: true,
 
-  detect(
-    _files: Map<string, string>,
-    manifest: ExtensionManifest
-  ): Evidence[] {
+  detect(_files: Map<string, string>, manifest: ExtensionManifest): Evidence[] {
     const evidences: Evidence[] = [];
 
     const activationEvents = manifest.activationEvents ?? [];

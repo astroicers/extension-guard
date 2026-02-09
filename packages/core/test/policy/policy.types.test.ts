@@ -36,7 +36,11 @@ describe('Policy Types', () => {
           blocklist: ['publisher.malicious-ext'],
           rules: {
             minTrustScore: { threshold: 70, action: 'block' },
-            requireVerifiedPublisher: { enabled: true, action: 'warn', exceptions: ['internal.ext'] },
+            requireVerifiedPublisher: {
+              enabled: true,
+              action: 'warn',
+              exceptions: ['internal.ext'],
+            },
             maxDaysSinceUpdate: { days: 365, action: 'info' },
             blockObfuscated: { enabled: true, action: 'block' },
           },
@@ -117,10 +121,15 @@ describe('Policy Types', () => {
     it('should support all action types in violations', () => {
       const violations: PolicyViolation[] = [
         { extensionId: 'a.ext', rule: 'blocklist', message: 'Blocklisted', action: 'block' },
-        { extensionId: 'b.ext', rule: 'verifiedPublisher', message: 'Not verified', action: 'warn' },
+        {
+          extensionId: 'b.ext',
+          rule: 'verifiedPublisher',
+          message: 'Not verified',
+          action: 'warn',
+        },
         { extensionId: 'c.ext', rule: 'lastUpdated', message: 'Stale', action: 'info' },
       ];
-      expect(violations.map(v => v.action)).toEqual(['block', 'warn', 'info']);
+      expect(violations.map((v) => v.action)).toEqual(['block', 'warn', 'info']);
     });
   });
 });

@@ -5,10 +5,7 @@ export class StatusBarManager implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
 
   constructor() {
-    this.statusBarItem = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-      100
-    );
+    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     this.statusBarItem.command = 'extensionGuardView.focus';
     this.statusBarItem.show();
     this.update();

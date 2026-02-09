@@ -14,9 +14,6 @@ export function compareSeverity(a: Severity, b: Severity): number {
   return SEVERITY_ORDER[a] - SEVERITY_ORDER[b];
 }
 
-export function isAtLeastSeverity(
-  severity: Severity,
-  minimum: Severity
-): boolean {
+export function isAtLeastSeverity(severity: Severity, minimum: Severity): boolean {
   return SEVERITY_ORDER[severity] <= SEVERITY_ORDER[minimum];
 }

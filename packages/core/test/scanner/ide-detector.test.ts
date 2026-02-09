@@ -71,7 +71,14 @@ describe('ide-detector', () => {
 
   describe('IDE_PATHS', () => {
     it('should include all supported IDEs', () => {
-      const expectedIDEs = ['VS Code', 'VS Code Insiders', 'Cursor', 'Windsurf', 'Trae', 'VSCodium'];
+      const expectedIDEs = [
+        'VS Code',
+        'VS Code Insiders',
+        'Cursor',
+        'Windsurf',
+        'Trae',
+        'VSCodium',
+      ];
       for (const ide of expectedIDEs) {
         expect(IDE_PATHS).toHaveProperty(ide);
       }

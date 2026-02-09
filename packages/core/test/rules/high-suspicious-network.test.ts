@@ -10,9 +10,7 @@ describe('EG-HIGH-002: Suspicious Network', () => {
   };
 
   it('should detect fetch to IP address', () => {
-    const files = new Map([
-      ['src/extension.js', `fetch('http://192.168.1.100/api');`],
-    ]);
+    const files = new Map([['src/extension.js', `fetch('http://192.168.1.100/api');`]]);
     const evidences = highSuspiciousNetwork.detect(files, mockManifest);
     expect(evidences.length).toBeGreaterThan(0);
     expect(evidences[0]?.matchedPattern).toBe('http-to-ip');
@@ -36,18 +34,14 @@ describe('EG-HIGH-002: Suspicious Network', () => {
   });
 
   it('should detect dynamic URL construction', () => {
-    const files = new Map([
-      ['src/extension.js', 'fetch(`https://api.example.com/${endpoint}`);'],
-    ]);
+    const files = new Map([['src/extension.js', 'fetch(`https://api.example.com/${endpoint}`);']]);
     const evidences = highSuspiciousNetwork.detect(files, mockManifest);
     expect(evidences.length).toBeGreaterThan(0);
     expect(evidences[0]?.matchedPattern).toBe('dynamic-url');
   });
 
   it('should detect unusual ports', () => {
-    const files = new Map([
-      ['src/extension.js', `fetch('https://example.com:4444/api');`],
-    ]);
+    const files = new Map([['src/extension.js', `fetch('https://example.com:4444/api');`]]);
     const evidences = highSuspiciousNetwork.detect(files, mockManifest);
     expect(evidences.length).toBeGreaterThan(0);
     expect(evidences[0]?.matchedPattern).toBe('unusual-port');
@@ -55,10 +49,13 @@ describe('EG-HIGH-002: Suspicious Network', () => {
 
   it('should not flag normal domain requests', () => {
     const files = new Map([
-      ['src/extension.js', `
+      [
+        'src/extension.js',
+        `
         fetch('https://api.github.com/repos');
         axios.get('https://registry.npmjs.org/package');
-      `],
+      `,
+      ],
     ]);
     const evidences = highSuspiciousNetwork.detect(files, mockManifest);
     expect(evidences).toHaveLength(0);
@@ -66,11 +63,14 @@ describe('EG-HIGH-002: Suspicious Network', () => {
 
   it('should not flag standard ports', () => {
     const files = new Map([
-      ['src/extension.js', `
+      [
+        'src/extension.js',
+        `
         fetch('https://example.com:443/api');
         fetch('http://localhost:3000/dev');
         fetch('http://localhost:8080/test');
-      `],
+      `,
+      ],
     ]);
     const evidences = highSuspiciousNetwork.detect(files, mockManifest);
     expect(evidences).toHaveLength(0);

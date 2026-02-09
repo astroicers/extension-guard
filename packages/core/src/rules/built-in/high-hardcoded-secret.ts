@@ -55,7 +55,8 @@ const SECRET_PATTERNS: SecretPattern[] = [
   // AWS Secret Access Key
   {
     name: 'aws-secret-key',
-    pattern: /(?:aws[_-]?secret(?:[_-]?access)?[_-]?key|secret[_-]?access[_-]?key)\s*[:=]\s*['"`]([A-Za-z0-9/+=]{40})['"`]/gi,
+    pattern:
+      /(?:aws[_-]?secret(?:[_-]?access)?[_-]?key|secret[_-]?access[_-]?key)\s*[:=]\s*['"`]([A-Za-z0-9/+=]{40})['"`]/gi,
     matchGroup: 1,
   },
   // GitHub tokens (ghp_, gho_, ghs_, ghr_)
@@ -140,10 +141,7 @@ export const highHardcodedSecret: DetectionRule = {
   mitreAttackId: 'T1552.001',
   enabled: true,
 
-  detect(
-    files: Map<string, string>,
-    _manifest: ExtensionManifest
-  ): Evidence[] {
+  detect(files: Map<string, string>, _manifest: ExtensionManifest): Evidence[] {
     const evidences: Evidence[] = [];
 
     for (const [filePath, content] of files) {
@@ -178,9 +176,8 @@ export const highHardcodedSecret: DetectionRule = {
           }
 
           // Get the actual secret value (either from capture group or full match)
-          const secretValue = secretPattern.matchGroup !== undefined
-            ? match[secretPattern.matchGroup]
-            : match[0];
+          const secretValue =
+            secretPattern.matchGroup !== undefined ? match[secretPattern.matchGroup] : match[0];
 
           // Skip if no secret value found
           if (!secretValue) {

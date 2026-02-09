@@ -102,7 +102,7 @@ export class PolicyEngine {
    * @returns true if any blocking violations exist
    */
   hasBlockingViolations(): boolean {
-    return this.violations.some(v => v.action === 'block');
+    return this.violations.some((v) => v.action === 'block');
   }
 
   /**
@@ -138,7 +138,7 @@ export class PolicyEngine {
     const rule = this.config.policy?.rules?.blockObfuscated;
     if (!rule?.enabled) return;
 
-    const hasObfuscation = result.findings.some(f => f.ruleId === OBFUSCATION_RULE_ID);
+    const hasObfuscation = result.findings.some((f) => f.ruleId === OBFUSCATION_RULE_ID);
     if (hasObfuscation) {
       this.violations.push({
         extensionId: result.extensionId,
