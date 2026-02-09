@@ -9,11 +9,23 @@ import type {
   Severity,
   FindingCategory,
   DetectedIDE,
+  ExtensionManifest,
 } from '../types/index.js';
 import { detectIDEPaths } from './ide-detector.js';
 import { readExtensionsFromDirectory } from './extension-reader.js';
 import { collectFiles } from './file-collector.js';
 import { VERSION } from '../index.js';
+import { RuleEngine } from '../rules/rule-engine.js';
+import { registerBuiltInRules } from '../rules/built-in/index.js';
+
+// Register built-in rules once at module load
+let rulesRegistered = false;
+function ensureRulesRegistered(): void {
+  if (!rulesRegistered) {
+    registerBuiltInRules();
+    rulesRegistered = true;
+  }
+}
 
 const DEFAULT_OPTIONS: Required<ScanOptions> = {
   idePaths: [],
@@ -25,11 +37,26 @@ const DEFAULT_OPTIONS: Required<ScanOptions> = {
   timeout: 30000,
 };
 
+const SEVERITY_PENALTY: Record<Severity, number> = {
+  critical: 35,
+  high: 18,
+  medium: 8,
+  low: 3,
+  info: 1,
+};
+
 export class ExtensionGuardScanner {
   private options: Required<ScanOptions>;
+  private ruleEngine: RuleEngine;
 
   constructor(options?: Partial<ScanOptions>) {
+    ensureRulesRegistered();
     this.options = { ...DEFAULT_OPTIONS, ...options };
+    this.ruleEngine = new RuleEngine({
+      rules: this.options.rules.length > 0 ? this.options.rules : undefined,
+      skipRules: this.options.skipRules.length > 0 ? this.options.skipRules : undefined,
+      minSeverity: this.options.severity,
+    });
   }
 
   async scan(options?: Partial<ScanOptions>): Promise<FullScanReport> {
@@ -97,20 +124,69 @@ export class ExtensionGuardScanner {
     const startTime = Date.now();
     const files = await collectFiles(ext.installPath);
 
-    // TODO: Run analyzers here
-    // For now, return a basic result with no findings
+    // Parse manifest for rule engine
+    const manifestContent = files.get('package.json');
+    let manifest: ExtensionManifest = {
+      name: ext.id.split('.')[1] || ext.id,
+      publisher: ext.publisher.name,
+      version: ext.version,
+    };
+    if (manifestContent) {
+      try {
+        manifest = JSON.parse(manifestContent);
+      } catch {
+        // Use default manifest
+      }
+    }
+
+    // Run rules
+    const findings = this.ruleEngine.run(files, manifest);
+
+    // Calculate trust score
+    const trustScore = this.calculateTrustScore(findings);
+    const riskLevel = this.calculateRiskLevel(trustScore, findings);
 
     return {
       extensionId: ext.id,
       displayName: ext.displayName,
       version: ext.version,
-      trustScore: 100, // Will be calculated by scorer
-      riskLevel: 'safe',
-      findings: [],
+      trustScore,
+      riskLevel,
+      findings,
       metadata: ext,
       analyzedFiles: files.size,
       scanDurationMs: Date.now() - startTime,
     };
+  }
+
+  private calculateTrustScore(findings: ScanResult['findings']): number {
+    let score = 100;
+
+    // Apply penalties per finding
+    for (const finding of findings) {
+      score -= SEVERITY_PENALTY[finding.severity];
+    }
+
+    // Clamp to [0, 100]
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private calculateRiskLevel(trustScore: number, findings: ScanResult['findings']): RiskLevel {
+    // If any critical finding, always critical
+    if (findings.some((f) => f.severity === 'critical')) {
+      return 'critical';
+    }
+    // If any high finding, at least high
+    if (findings.some((f) => f.severity === 'high')) {
+      return 'high';
+    }
+
+    // Otherwise, base on trust score
+    if (trustScore >= 90) return 'safe';
+    if (trustScore >= 70) return 'low';
+    if (trustScore >= 45) return 'medium';
+    if (trustScore >= 20) return 'high';
+    return 'critical';
   }
 
   private calculateSummary(results: ScanResult[]): ScanSummary {

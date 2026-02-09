@@ -52,5 +52,22 @@ describe('ExtensionGuardScanner', () => {
       expect(benignTheme?.trustScore).toBeGreaterThanOrEqual(0);
       expect(benignTheme?.trustScore).toBeLessThanOrEqual(100);
     });
+
+    it('should detect malicious patterns in extensions', async () => {
+      const scanner = new ExtensionGuardScanner({
+        autoDetect: false,
+        idePaths: [fixturesPath],
+      });
+
+      const report = await scanner.scan();
+      const maliciousExt = report.results.find(
+        (r) => r.extensionId === 'evil-publisher.malicious-exfil'
+      );
+
+      expect(maliciousExt).toBeDefined();
+      expect(maliciousExt?.findings.length).toBeGreaterThan(0);
+      expect(maliciousExt?.riskLevel).toBe('critical');
+      expect(maliciousExt?.trustScore).toBeLessThan(100);
+    });
   });
 });
