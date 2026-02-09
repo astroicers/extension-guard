@@ -1,6 +1,12 @@
 # Extension Guard
 
+[![CI](https://github.com/astroicers/extension-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/astroicers/extension-guard/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/extension-guard.svg)](https://www.npmjs.com/package/extension-guard)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 CLI-first security scanner for VSCode extensions. Detect malicious behaviors, generate trust scores, and enforce security policies in your CI/CD pipeline.
+
+> **Protect your IDE from malicious extensions.** Extension Guard scans your installed VSCode extensions offline, detecting data exfiltration, remote code execution, credential theft, and more.
 
 ## Features
 
@@ -159,6 +165,14 @@ const sarifReporter = new SarifReporter();
 console.log(sarifReporter.generate(report));
 ```
 
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## Security
+
+If you discover a security vulnerability, please open an issue or contact us directly.
+
 ## License
 
-MIT
+MIT - see [LICENSE](LICENSE) for details.
