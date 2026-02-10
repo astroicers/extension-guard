@@ -83,26 +83,32 @@ extension-guard audit --fail-on warn
 
 Exit codes:
 - `0` - No violations at or above fail-on level
-- `1` - Violations found
-- `2` - Config file not found
+- `1` - Violations found (critical/high issues for `scan`, policy violations for `audit`)
+- `2` - Configuration error (policy file not found or invalid)
+- `3` - Execution error (path not found, permission denied, etc.)
 
 ## Output Formats
 
 ### Table (default)
+
 Human-readable terminal output with colors and formatting.
 
 ### JSON
+
 ```bash
 extension-guard scan --format json -o report.json
 ```
 
 ### SARIF
+
 For GitHub Code Scanning integration:
+
 ```bash
 extension-guard scan --format sarif -o results.sarif
 ```
 
 ### Markdown
+
 ```bash
 extension-guard scan --format markdown -o report.md
 ```
@@ -140,6 +146,8 @@ Extension Guard uses a multi-layer approach to reduce false positives:
 2. **Category-Aware Analysis** - Expected behaviors for each category are downgraded. For example:
    - AI assistants (Copilot, Codeium) legitimately use network/process spawning
    - Language support (ms-python, rust-analyzer) legitimately spawn interpreters
+   - Developer tools (Code Runner, REST Client) legitimately spawn processes and make network requests
+   - Remote development (Remote-SSH, Dev Containers) legitimately use SSH and network
    - Grammar extensions may have high-entropy bundled code
 
 3. **Trusted Publisher Recognition** - Well-known publishers (Microsoft, GitHub, etc.) get reduced severity findings. This is "soft trust" — findings are downgraded, not bypassed, because supply chain attacks can hit anyone.
@@ -152,8 +160,14 @@ Extension Guard uses a multi-layer approach to reduce false positives:
 |----------|----------|-------------------|
 | ai-assistant | Copilot, Codeium, Kilo Code | Network, process spawn, env access |
 | language-support | ms-python, rust-analyzer, Go | Process spawn, dynamic require |
-| language | Adblock grammar, syntax themes | High-entropy bundled code |
+| developer-tools | Code Runner, REST Client, Live Server | Process spawn, network requests |
+| remote-development | Remote-SSH, Dev Containers, WSL | SSH, network, process spawn |
+| testing | Jest Runner, Test Explorer | Process spawn |
+| notebook | Jupyter | Kernel spawn, network |
+| debugger | Node Debug, Python Debug | Process spawn |
 | linter | ESLint, Prettier | Process spawn |
+| scm | GitLens, Git Graph | Git credentials access |
+| language | Adblock grammar, syntax themes | High-entropy bundled code |
 | theme | Color themes, icon themes | Minimal runtime |
 
 ## Trust Score
@@ -168,6 +182,7 @@ Each extension receives a trust score from 0-100:
 | 0-39 | Critical risk |
 
 Penalties:
+
 - Critical finding: -35 points
 - High finding: -18 points
 - Medium finding: -8 points

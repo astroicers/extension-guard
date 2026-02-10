@@ -153,6 +153,123 @@ const EXPECTED_BEHAVIORS: Partial<Record<ExtensionCategory, ExpectedBehavior[]>>
       matchedPatterns: ['dynamic-url'],
     },
   ],
+
+  'developer-tools': [
+    {
+      // Code runners spawn processes to execute code (python, node, bash, etc.)
+      ruleIds: ['EG-CRIT-002'],
+      matchedPatterns: [
+        'child_process-exec',
+        'child_process-execSync',
+        'child_process-spawn-shell',
+        'eval',
+        'Function-constructor',
+      ],
+    },
+    {
+      // REST clients, API testers make network requests by design
+      ruleIds: ['EG-HIGH-002'],
+      matchedPatterns: ['dynamic-url', 'http-to-ip', 'unusual-port'],
+    },
+    {
+      // Live servers spawn HTTP servers on various ports
+      ruleIds: ['EG-HIGH-002'],
+      matchedPatterns: ['unusual-port'],
+    },
+    {
+      // Developer tools may collect system info for environment detection
+      ruleIds: ['EG-CRIT-001'],
+    },
+    {
+      // Developer tools may have bundled code with high entropy
+      ruleIds: ['EG-HIGH-001'],
+      matchedPatterns: ['high-entropy', 'large-base64'],
+    },
+  ],
+
+  'remote-development': [
+    {
+      // Remote extensions spawn SSH, docker, WSL processes
+      ruleIds: ['EG-CRIT-002'],
+      matchedPatterns: [
+        'child_process-exec',
+        'child_process-execSync',
+        'child_process-spawn-shell',
+      ],
+    },
+    {
+      // Remote extensions make network connections by design
+      ruleIds: ['EG-HIGH-002'],
+      matchedPatterns: ['dynamic-url', 'http-to-ip', 'unusual-port'],
+    },
+    {
+      // Remote extensions collect system info for environment detection
+      ruleIds: ['EG-CRIT-001'],
+    },
+    {
+      // Remote extensions may access SSH keys and credentials legitimately
+      ruleIds: ['EG-CRIT-003'],
+      matchedPatterns: ['ssh-keys', 'ssh-config'],
+    },
+    {
+      // Remote extensions may have bundled code
+      ruleIds: ['EG-HIGH-001'],
+      matchedPatterns: ['high-entropy', 'large-base64'],
+    },
+  ],
+
+  testing: [
+    {
+      // Test runners spawn test processes
+      ruleIds: ['EG-CRIT-002'],
+      matchedPatterns: [
+        'child_process-exec',
+        'child_process-execSync',
+        'child_process-spawn-shell',
+      ],
+    },
+    {
+      // Test runners may collect system info for environment detection
+      ruleIds: ['EG-CRIT-001'],
+    },
+    {
+      // Test runners may have bundled code
+      ruleIds: ['EG-HIGH-001'],
+      matchedPatterns: ['high-entropy', 'large-base64'],
+    },
+  ],
+
+  notebook: [
+    {
+      // Notebook extensions spawn kernels (Python, Julia, etc.)
+      ruleIds: ['EG-CRIT-002'],
+      matchedPatterns: [
+        'child_process-exec',
+        'child_process-execSync',
+        'child_process-spawn-shell',
+        'dynamic-require',
+      ],
+    },
+    {
+      // Notebook extensions make network connections for package management
+      ruleIds: ['EG-HIGH-002'],
+      matchedPatterns: ['dynamic-url', 'unusual-port'],
+    },
+    {
+      // Notebook extensions collect system info for environment detection
+      ruleIds: ['EG-CRIT-001'],
+    },
+    {
+      // Notebook extensions may read environment files for kernel config
+      ruleIds: ['EG-CRIT-003'],
+      matchedPatterns: ['env-file'],
+    },
+    {
+      // Notebook extensions may have bundled code
+      ruleIds: ['EG-HIGH-001'],
+      matchedPatterns: ['high-entropy', 'large-base64'],
+    },
+  ],
 };
 
 /**

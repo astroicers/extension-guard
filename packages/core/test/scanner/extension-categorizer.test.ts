@@ -269,6 +269,268 @@ describe('categorizeExtension', () => {
     });
   });
 
+  describe('developer-tools detection', () => {
+    it('should detect Code Runner from publisher', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'code-runner',
+            publisher: 'formulahendry',
+            displayName: 'Code Runner',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+
+    it('should detect Code Runner from displayName', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'my-runner',
+            publisher: 'unknown',
+            displayName: 'Code Runner Plus',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+
+    it('should detect REST Client from publisher', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'rest-client',
+            publisher: 'humao',
+            displayName: 'REST Client',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+
+    it('should detect REST Client from displayName', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'http-tool',
+            publisher: 'unknown',
+            displayName: 'REST Client Pro',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+
+    it('should detect Thunder Client from publisher', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'thunder-client',
+            publisher: 'rangav',
+            displayName: 'Thunder Client',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+
+    it('should detect Live Server from publisher', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'liveserver',
+            publisher: 'ritwickdey',
+            displayName: 'Live Server',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+
+    it('should detect Live Server from displayName', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'preview',
+            publisher: 'unknown',
+            displayName: 'Live Server Preview',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+
+    it('should detect API client from description', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'my-tool',
+            publisher: 'unknown',
+            description: 'A powerful API client for testing REST endpoints',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+
+    it('should detect database client from displayName', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'db-tool',
+            publisher: 'unknown',
+            displayName: 'MongoDB Client',
+          })
+        )
+      ).toBe('developer-tools');
+    });
+  });
+
+  describe('remote-development detection', () => {
+    it('should detect Remote-SSH from publisher', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'remote-ssh',
+            publisher: 'ms-vscode-remote',
+            displayName: 'Remote - SSH',
+          })
+        )
+      ).toBe('remote-development');
+    });
+
+    it('should detect Dev Containers from displayName', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'container',
+            publisher: 'unknown',
+            displayName: 'Dev Container Tools',
+          })
+        )
+      ).toBe('remote-development');
+    });
+
+    it('should detect WSL from displayName', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'wsl-extension',
+            publisher: 'unknown',
+            displayName: 'WSL Remote',
+          })
+        )
+      ).toBe('remote-development');
+    });
+
+    it('should detect GitHub Codespaces from description', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'cloud-dev',
+            publisher: 'unknown',
+            description: 'Develop in GitHub Codespaces directly',
+          })
+        )
+      ).toBe('remote-development');
+    });
+  });
+
+  describe('testing detection', () => {
+    it('should detect from Testing category', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'my-test',
+            publisher: 'unknown',
+            categories: ['Testing'],
+          })
+        )
+      ).toBe('testing');
+    });
+
+    it('should detect Jest Runner from publisher', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'jest',
+            publisher: 'firsttris',
+            displayName: 'Jest Runner',
+          })
+        )
+      ).toBe('testing');
+    });
+
+    it('should detect Test Explorer from displayName', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'test-ext',
+            publisher: 'unknown',
+            displayName: 'Test Explorer UI',
+          })
+        )
+      ).toBe('testing');
+    });
+
+    it('should detect Playwright from description', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'e2e',
+            publisher: 'unknown',
+            description: 'Run Playwright tests from VS Code',
+          })
+        )
+      ).toBe('testing');
+    });
+  });
+
+  describe('notebook detection', () => {
+    it('should detect from Notebooks category', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'my-notebook',
+            publisher: 'unknown',
+            categories: ['Notebooks'],
+          })
+        )
+      ).toBe('notebook');
+    });
+
+    it('should detect Jupyter from publisher', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'jupyter',
+            publisher: 'ms-toolsai',
+            displayName: 'Jupyter',
+          })
+        )
+      ).toBe('notebook');
+    });
+
+    it('should detect from contributes.notebooks', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'custom-notebook',
+            publisher: 'unknown',
+            contributes: {
+              notebooks: [{ type: 'my-notebook', displayName: 'My Notebook' }],
+            },
+          })
+        )
+      ).toBe('notebook');
+    });
+
+    it('should detect Jupyter from displayName', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'nb',
+            publisher: 'unknown',
+            displayName: 'Jupyter Notebook Viewer',
+          })
+        )
+      ).toBe('notebook');
+    });
+  });
+
   describe('general fallback', () => {
     it('should return general for unknown extensions', () => {
       expect(

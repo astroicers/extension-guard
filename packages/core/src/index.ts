@@ -1,7 +1,7 @@
 // Extension Guard Core - Scanning Engine
 // @aspect-guard/core
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.3.0';
 
 // Types
 export * from './types/index.js';
@@ -16,7 +16,7 @@ export type { ExtensionCategory } from './scanner/extension-categorizer.js';
 
 // Rules
 export * from './rules/index.js';
-export { registerBuiltInRules } from './rules/built-in/index.js';
+export { registerBuiltInRules, DETECTION_RULES } from './rules/built-in/index.js';
 export { adjustFindings } from './rules/finding-adjuster.js';
 export type { AdjustFindingsOptions } from './rules/finding-adjuster.js';
 

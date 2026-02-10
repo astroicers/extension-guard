@@ -45,6 +45,25 @@ export const TRUSTED_PUBLISHERS = [
   'mongodb',
   'prisma',
   'vscjava', // Microsoft Java
+
+  // Popular developer tool vendors
+  'formulahendry', // Code Runner (10M+ downloads)
+  'ritwickdey', // Live Server (50M+ downloads)
+  'humao', // REST Client (5M+ downloads)
+  'rangav', // Thunder Client (3M+ downloads)
+  'mtxr', // SQLTools
+  'cweijan', // Database Client
+
+  // Remote development
+  'ms-vscode-remote', // Remote-SSH, Dev Containers, WSL
+
+  // Testing
+  'hbenl', // Test Explorer UI
+  'firsttris', // Jest Runner
+  'orta', // vscode-jest
+
+  // Notebooks
+  'ms-toolsai', // Jupyter
 ];
 
 /**

@@ -275,6 +275,182 @@ describe('adjustFindings', () => {
     });
   });
 
+  describe('developer-tools category', () => {
+    it('should downgrade child_process for Code Runner extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-002',
+          severity: 'critical',
+          evidence: { filePath: 'src/runner.js', matchedPattern: 'child_process-exec' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'developer-tools');
+      expect(adjusted[0]?.severity).toBe('medium');
+      expect(adjusted[0]?.description).toContain('developer-tools');
+    });
+
+    it('should downgrade http-to-ip for REST client extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-HIGH-002',
+          severity: 'high',
+          category: 'suspicious-network',
+          evidence: { filePath: 'src/client.js', matchedPattern: 'http-to-ip' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'developer-tools');
+      expect(adjusted[0]?.severity).toBe('low');
+    });
+
+    it('should downgrade unusual-port for Live Server extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-HIGH-002',
+          severity: 'high',
+          category: 'suspicious-network',
+          evidence: { filePath: 'src/server.js', matchedPattern: 'unusual-port' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'developer-tools');
+      expect(adjusted[0]?.severity).toBe('low');
+    });
+
+    it('should downgrade data-exfiltration for developer-tools', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-001',
+          severity: 'critical',
+          category: 'data-exfiltration',
+          evidence: { filePath: 'src/ext.js', matchedPattern: 'os.platform + http' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'developer-tools');
+      expect(adjusted[0]?.severity).toBe('medium');
+    });
+  });
+
+  describe('remote-development category', () => {
+    it('should downgrade child_process for Remote-SSH extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-002',
+          severity: 'critical',
+          evidence: { filePath: 'src/ssh.js', matchedPattern: 'child_process-exec' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'remote-development');
+      expect(adjusted[0]?.severity).toBe('medium');
+      expect(adjusted[0]?.description).toContain('remote-development');
+    });
+
+    it('should downgrade ssh-keys credential access for Remote extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-003',
+          severity: 'critical',
+          category: 'credential-theft',
+          evidence: { filePath: 'src/connect.js', matchedPattern: 'ssh-keys' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'remote-development');
+      expect(adjusted[0]?.severity).toBe('medium');
+    });
+
+    it('should downgrade network findings for Remote extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-HIGH-002',
+          severity: 'high',
+          category: 'suspicious-network',
+          evidence: { filePath: 'src/tunnel.js', matchedPattern: 'unusual-port' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'remote-development');
+      expect(adjusted[0]?.severity).toBe('low');
+    });
+  });
+
+  describe('testing category', () => {
+    it('should downgrade child_process for test runner extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-002',
+          severity: 'critical',
+          evidence: { filePath: 'src/runner.js', matchedPattern: 'child_process-spawn-shell' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'testing');
+      expect(adjusted[0]?.severity).toBe('medium');
+      expect(adjusted[0]?.description).toContain('testing');
+    });
+
+    it('should downgrade data-exfiltration for test runners', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-001',
+          severity: 'critical',
+          category: 'data-exfiltration',
+          evidence: { filePath: 'src/env.js', matchedPattern: 'os.platform' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'testing');
+      expect(adjusted[0]?.severity).toBe('medium');
+    });
+  });
+
+  describe('notebook category', () => {
+    it('should downgrade child_process for Jupyter extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-002',
+          severity: 'critical',
+          evidence: { filePath: 'src/kernel.js', matchedPattern: 'child_process-spawn-shell' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'notebook');
+      expect(adjusted[0]?.severity).toBe('medium');
+      expect(adjusted[0]?.description).toContain('notebook');
+    });
+
+    it('should downgrade env-file access for notebook extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-003',
+          severity: 'critical',
+          category: 'credential-theft',
+          evidence: { filePath: 'src/config.js', matchedPattern: 'env-file' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'notebook');
+      expect(adjusted[0]?.severity).toBe('medium');
+    });
+
+    it('should downgrade network findings for notebook extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-HIGH-002',
+          severity: 'high',
+          category: 'suspicious-network',
+          evidence: { filePath: 'src/packages.js', matchedPattern: 'dynamic-url' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'notebook');
+      expect(adjusted[0]?.severity).toBe('low');
+    });
+  });
+
   describe('general category', () => {
     it('should NOT adjust findings for general extensions', () => {
       const findings = [

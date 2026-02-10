@@ -10,8 +10,35 @@ import {
   MarkdownReporter,
   loadPolicyConfig,
   PolicyEngine,
+  DETECTION_RULES,
 } from '@aspect-guard/core';
 import type { FullScanReport, Reporter, PolicyViolation, PolicyAction } from '@aspect-guard/core';
+
+// CLI output configuration
+interface OutputConfig {
+  color: boolean;
+  emoji: boolean;
+}
+
+let outputConfig: OutputConfig = {
+  color: true,
+  emoji: true,
+};
+
+// Emoji/text mappings
+const icons = {
+  shield: () => (outputConfig.emoji ? '🛡️' : '[GUARD]'),
+  folder: () => (outputConfig.emoji ? '📁' : '[DIR]'),
+  critical: () => (outputConfig.emoji ? '⛔' : '[!!!]'),
+  high: () => (outputConfig.emoji ? '🔴' : '[!!]'),
+  medium: () => (outputConfig.emoji ? '🟡' : '[!]'),
+  safe: () => (outputConfig.emoji ? '🟢' : '[OK]'),
+  summary: () => (outputConfig.emoji ? '📊' : '[SUM]'),
+  time: () => (outputConfig.emoji ? '⏱️' : '[TIME]'),
+  check: () => (outputConfig.emoji ? '✓' : '[v]'),
+  cross: () => (outputConfig.emoji ? '✗' : '[x]'),
+  info: () => (outputConfig.emoji ? 'ℹ' : '[i]'),
+};
 
 export function createCli(): Command {
   const program = new Command();
@@ -19,11 +46,138 @@ export function createCli(): Command {
   program
     .name('extension-guard')
     .description('Scan VSCode extensions for security issues')
-    .version(VERSION);
+    .version(VERSION)
+    .option('--no-color', 'Disable colored output')
+    .option('--no-emoji', 'Disable emoji output')
+    .hook('preAction', (thisCommand) => {
+      const opts = thisCommand.opts();
+      outputConfig.color = opts.color !== false;
+      outputConfig.emoji = opts.emoji !== false;
+      if (!outputConfig.color) {
+        chalk.level = 0;
+      }
+    });
+
+  // Init command - create policy configuration file
+  program
+    .command('init')
+    .description('Create a new .extension-guard.json policy configuration file')
+    .option('-f, --force', 'Overwrite existing configuration file')
+    .option('-o, --output <path>', 'Output path for configuration file', '.extension-guard.json')
+    .action((options) => {
+      const configPath = options.output;
+
+      if (fs.existsSync(configPath) && !options.force) {
+        console.error(chalk.red(`Error: ${configPath} already exists.`));
+        console.error(chalk.dim('Use --force to overwrite.'));
+        process.exit(2);
+      }
+
+      const template = {
+        $schema:
+          'https://raw.githubusercontent.com/astroicers/extension-guard/main/schemas/policy.schema.json',
+        version: '1.0',
+        policy: {
+          allowlist: [],
+          blocklist: [],
+          rules: {
+            minTrustScore: {
+              enabled: true,
+              threshold: 60,
+              action: 'warn',
+            },
+            blockObfuscated: {
+              enabled: false,
+              action: 'info',
+            },
+            requireVerifiedPublisher: {
+              enabled: false,
+              action: 'info',
+            },
+          },
+        },
+        scanning: {
+          minSeverity: 'info',
+          includeDevDependencies: false,
+        },
+      };
+
+      fs.writeFileSync(configPath, JSON.stringify(template, null, 2) + '\n');
+      console.log(chalk.green(`${icons.check()} Created ${configPath}`));
+      console.log();
+      console.log('Next steps:');
+      console.log(`  1. Edit ${chalk.cyan(configPath)} to customize your policy`);
+      console.log(`  2. Run ${chalk.cyan('extension-guard audit')} to check your extensions`);
+      console.log();
+    });
+
+  // Rules command - list available detection rules
+  program
+    .command('rules')
+    .description('List available detection rules')
+    .option('--details <ruleId>', 'Show detailed information for a specific rule')
+    .action((options) => {
+      if (options.details) {
+        const rule = DETECTION_RULES.find((r) => r.id === options.details);
+        if (!rule) {
+          console.error(chalk.red(`Error: Rule '${options.details}' not found.`));
+          console.log(chalk.dim('Run `extension-guard rules` to see available rules.'));
+          process.exit(1);
+        }
+
+        console.log();
+        console.log(chalk.bold(rule.id));
+        console.log(chalk.dim('━'.repeat(60)));
+        console.log(`Name:        ${rule.name}`);
+        console.log(`Severity:    ${formatSeverity(rule.severity)}`);
+        console.log(`Category:    ${rule.category}`);
+        console.log(`Description: ${rule.description}`);
+        if (rule.mitreAttackId) {
+          console.log(`MITRE ATT&CK: ${rule.mitreAttackId}`);
+        }
+        console.log();
+        return;
+      }
+
+      console.log();
+      console.log(chalk.bold('Available Detection Rules'));
+      console.log(chalk.dim('━'.repeat(60)));
+      console.log();
+
+      const rulesBySeverity: Record<string, typeof DETECTION_RULES> = {};
+      for (const rule of DETECTION_RULES) {
+        if (!rulesBySeverity[rule.severity]) {
+          rulesBySeverity[rule.severity] = [];
+        }
+        rulesBySeverity[rule.severity].push(rule);
+      }
+
+      const severityOrder = ['critical', 'high', 'medium', 'low', 'info'];
+      for (const severity of severityOrder) {
+        const rules = rulesBySeverity[severity];
+        if (rules && rules.length > 0) {
+          console.log(formatSeverity(severity));
+          for (const rule of rules) {
+            console.log(`  ${chalk.cyan(rule.id.padEnd(14))} ${rule.name}`);
+          }
+          console.log();
+        }
+      }
+
+      console.log(chalk.dim('Run `extension-guard rules --details <ruleId>` for more information.'));
+      console.log();
+    });
 
   program
     .command('scan')
-    .description('Scan installed VSCode extensions')
+    .description(
+      'Scan installed VSCode extensions\n\n' +
+        'Examples:\n' +
+        '  extension-guard scan                      Scan all detected IDEs\n' +
+        '  extension-guard scan --ide cursor         Scan Cursor IDE only\n' +
+        '  extension-guard scan --format json -o r.json  Output as JSON file\n' +
+        '  extension-guard scan --format sarif       Output for GitHub Code Scanning'
+    )
     .option('-p, --path <paths...>', 'Custom extension paths to scan')
     .option('-f, --format <format>', 'Output format (table|json|sarif|markdown)', 'table')
     .option('-o, --output <file>', 'Output file path (default: stdout)')
@@ -199,11 +353,11 @@ function generateOutput(
 
 function printTableReport(report: FullScanReport): void {
   console.log();
-  console.log(chalk.bold(`🛡️  Extension Guard v${VERSION}`));
+  console.log(chalk.bold(`${icons.shield()}  Extension Guard v${VERSION}`));
   console.log();
 
   for (const ide of report.environment.ides) {
-    console.log(`📁 ${chalk.cyan(ide.name)}: ${ide.path} (${ide.extensionCount} extensions)`);
+    console.log(`${icons.folder()} ${chalk.cyan(ide.name)}: ${ide.path} (${ide.extensionCount} extensions)`);
   }
 
   console.log();
@@ -216,31 +370,29 @@ function printTableReport(report: FullScanReport): void {
   const safe = report.results.filter((r) => r.riskLevel === 'safe' || r.riskLevel === 'low');
 
   if (critical.length > 0) {
-    console.log(chalk.red.bold(`⛔ CRITICAL (${critical.length})`));
+    console.log(chalk.red.bold(`${icons.critical()} CRITICAL (${critical.length})`));
     for (const ext of critical) {
       printExtensionResult(ext);
     }
   }
 
   if (high.length > 0) {
-    console.log(chalk.red(`🔴 HIGH (${high.length})`));
+    console.log(chalk.red(`${icons.high()} HIGH (${high.length})`));
     for (const ext of high) {
       printExtensionResult(ext);
     }
   }
 
   if (medium.length > 0) {
-    console.log(chalk.yellow(`🟡 MEDIUM (${medium.length})`));
-    for (const ext of medium.slice(0, 3)) {
-      console.log(`   ${ext.extensionId}`);
+    console.log(chalk.yellow(`${icons.medium()} MEDIUM (${medium.length})`));
+    for (const ext of medium) {
+      console.log(`   ${ext.extensionId} (Trust: ${ext.trustScore}/100)`);
     }
-    if (medium.length > 3) {
-      console.log(chalk.dim(`   ... and ${medium.length - 3} more`));
-    }
+    console.log();
   }
 
   if (safe.length > 0) {
-    console.log(chalk.green(`🟢 SAFE (${safe.length})`));
+    console.log(chalk.green(`${icons.safe()} SAFE (${safe.length})`));
   }
 
   console.log();
@@ -249,12 +401,29 @@ function printTableReport(report: FullScanReport): void {
 
   const { bySeverity, byRiskLevel } = report.summary;
   console.log(
-    `📊 Summary: ${report.uniqueExtensions} scanned · ` +
+    `${icons.summary()} Summary: ${report.uniqueExtensions} scanned · ` +
       `${bySeverity.critical} critical · ${bySeverity.high} high · ` +
       `${bySeverity.medium} medium · ${byRiskLevel.safe} safe`
   );
-  console.log(`⏱️  Completed in ${(report.scanDurationMs / 1000).toFixed(1)}s`);
+  console.log(`${icons.time()}  Completed in ${(report.scanDurationMs / 1000).toFixed(1)}s`);
   console.log();
+}
+
+function formatSeverity(severity: string): string {
+  switch (severity) {
+    case 'critical':
+      return chalk.red.bold('CRITICAL');
+    case 'high':
+      return chalk.red('HIGH');
+    case 'medium':
+      return chalk.yellow('MEDIUM');
+    case 'low':
+      return chalk.blue('LOW');
+    case 'info':
+      return chalk.dim('INFO');
+    default:
+      return severity;
+  }
 }
 
 function printExtensionResult(result: FullScanReport['results'][0]): void {
@@ -270,6 +439,10 @@ function printExtensionResult(result: FullScanReport['results'][0]): void {
         console.log(
           `   │       at ${finding.evidence.filePath}:${finding.evidence.lineNumber ?? '?'}`
         );
+      }
+      // Show remediation tip if available
+      if (finding.remediation) {
+        console.log(chalk.dim(`   │       ${icons.info()} ${finding.remediation}`));
       }
     }
     if (result.findings.length > 3) {

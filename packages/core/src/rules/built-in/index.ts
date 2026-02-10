@@ -26,3 +26,17 @@ export {
   highHardcodedSecret,
   medExcessiveActivation,
 };
+
+/**
+ * All built-in detection rules with their metadata.
+ * Useful for CLI commands that list rules.
+ */
+export const DETECTION_RULES = [
+  critDataExfiltration,
+  critRemoteExecution,
+  critCredentialAccess,
+  highSuspiciousNetwork,
+  highObfuscatedCode,
+  highHardcodedSecret,
+  medExcessiveActivation,
+];
