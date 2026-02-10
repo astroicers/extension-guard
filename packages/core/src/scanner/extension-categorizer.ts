@@ -11,7 +11,24 @@ export type ExtensionCategory =
   | 'scm' // Source control — may access git-credentials legitimately
   | 'debugger' // Debuggers — may spawn processes legitimately
   | 'linter' // Linters, formatters — may spawn processes
+  | 'language-support' // Language servers, Python, Go, Rust — spawn interpreters/compilers
   | 'general'; // Everything else
+
+/**
+ * Publishers known to provide language support extensions (Python, Go, Rust, etc.)
+ * These extensions legitimately spawn language servers and interpreters.
+ */
+const LANGUAGE_SUPPORT_PUBLISHERS = [
+  'ms-python',
+  'ms-vscode',
+  'golang',
+  'rust-lang',
+  'microsoft',
+  'redhat',
+  'oracle',
+  'julialang',
+  'haskell',
+];
 
 const AI_KEYWORDS = [
   'copilot',
@@ -66,6 +83,12 @@ export function categorizeExtension(manifest: ExtensionManifest): ExtensionCateg
   // AI assistant: check categories, keywords, name, description
   if (isAIAssistant(categories, keywords, displayName, description, name)) {
     return 'ai-assistant';
+  }
+
+  // Language support: extensions that run language servers, interpreters, compilers
+  // Must be checked AFTER ai-assistant (some AI tools also have language support)
+  if (isLanguageSupport(manifest, categories)) {
+    return 'language-support';
   }
 
   // SCM
@@ -145,4 +168,24 @@ function isAIAssistant(
   ].join(' ');
 
   return AI_KEYWORDS.some((kw) => searchableText.includes(kw));
+}
+
+/**
+ * Detect language support extensions (Python, Go, Rust, Java, C++, etc.)
+ * These extensions need to spawn language servers and interpreters.
+ */
+function isLanguageSupport(manifest: ExtensionManifest, categories: string[]): boolean {
+  const publisher = (manifest.publisher ?? '').toLowerCase();
+
+  // Check known language support publishers
+  if (LANGUAGE_SUPPORT_PUBLISHERS.some((p) => publisher.includes(p))) {
+    return true;
+  }
+
+  // Check for "Programming Languages" category
+  if (categories.includes('programming languages')) {
+    return true;
+  }
+
+  return false;
 }

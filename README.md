@@ -131,6 +131,31 @@ extension-guard --version
 extension-guard --help
 ```
 
+## How It Works
+
+Extension Guard uses a multi-layer approach to reduce false positives:
+
+1. **Extension Categorization** - Automatically detects extension type (AI assistant, language support, theme, linter, etc.) from manifest
+
+2. **Category-Aware Analysis** - Expected behaviors for each category are downgraded. For example:
+   - AI assistants (Copilot, Codeium) legitimately use network/process spawning
+   - Language support (ms-python, rust-analyzer) legitimately spawn interpreters
+   - Grammar extensions may have high-entropy bundled code
+
+3. **Trusted Publisher Recognition** - Well-known publishers (Microsoft, GitHub, etc.) get reduced severity findings. This is "soft trust" — findings are downgraded, not bypassed, because supply chain attacks can hit anyone.
+
+4. **Configurable Policy** - Allowlist/blocklist for organizational control in CI/CD
+
+### Supported Extension Categories
+
+| Category | Examples | Expected Behaviors |
+|----------|----------|-------------------|
+| ai-assistant | Copilot, Codeium, Kilo Code | Network, process spawn, env access |
+| language-support | ms-python, rust-analyzer, Go | Process spawn, dynamic require |
+| language | Adblock grammar, syntax themes | High-entropy bundled code |
+| linter | ESLint, Prettier | Process spawn |
+| theme | Color themes, icon themes | Minimal runtime |
+
 ## Trust Score
 
 Each extension receives a trust score from 0-100:

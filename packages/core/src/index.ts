@@ -18,6 +18,15 @@ export type { ExtensionCategory } from './scanner/extension-categorizer.js';
 export * from './rules/index.js';
 export { registerBuiltInRules } from './rules/built-in/index.js';
 export { adjustFindings } from './rules/finding-adjuster.js';
+export type { AdjustFindingsOptions } from './rules/finding-adjuster.js';
+
+// Trusted Publishers
+export {
+  TRUSTED_PUBLISHERS,
+  TRUSTED_EXTENSION_IDS,
+  isTrustedPublisher,
+  isTrustedExtension,
+} from './data/trusted-publishers.js';
 
 // Reporter
 export * from './reporter/index.js';

@@ -192,6 +192,83 @@ describe('categorizeExtension', () => {
     });
   });
 
+  describe('language-support detection', () => {
+    it('should detect ms-python as language-support', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'python',
+            publisher: 'ms-python',
+            displayName: 'Python',
+            categories: ['Programming Languages', 'Linters', 'Formatters'],
+          })
+        )
+      ).toBe('language-support');
+    });
+
+    it('should detect ms-vscode C++ as language-support', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'cpptools',
+            publisher: 'ms-vscode',
+            displayName: 'C/C++',
+          })
+        )
+      ).toBe('language-support');
+    });
+
+    it('should detect golang.go as language-support', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'go',
+            publisher: 'golang',
+            displayName: 'Go',
+          })
+        )
+      ).toBe('language-support');
+    });
+
+    it('should detect rust-analyzer as language-support', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'rust-analyzer',
+            publisher: 'rust-lang',
+            displayName: 'rust-analyzer',
+          })
+        )
+      ).toBe('language-support');
+    });
+
+    it('should detect Programming Languages category as language-support', () => {
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'some-lang',
+            publisher: 'some-publisher',
+            categories: ['Programming Languages'],
+          })
+        )
+      ).toBe('language-support');
+    });
+
+    it('should prioritize ai-assistant over language-support for Copilot', () => {
+      // Even if Copilot has Programming Languages category, AI keywords take priority
+      expect(
+        categorizeExtension(
+          manifest({
+            name: 'copilot',
+            publisher: 'github',
+            displayName: 'GitHub Copilot',
+            categories: ['Programming Languages', 'Machine Learning'],
+          })
+        )
+      ).toBe('ai-assistant');
+    });
+  });
+
   describe('general fallback', () => {
     it('should return general for unknown extensions', () => {
       expect(

@@ -148,8 +148,12 @@ export class ExtensionGuardScanner {
     const rawFindings = this.ruleEngine.run(files, manifest);
 
     // Infer extension category and adjust findings for expected behavior
+    // Also apply soft trust for known publishers
     const category = categorizeExtension(manifest);
-    const findings = adjustFindings(rawFindings, category);
+    const findings = adjustFindings(rawFindings, category, {
+      publisher: ext.publisher.name,
+      extensionId: ext.id,
+    });
 
     // Calculate trust score
     const trustScore = this.calculateTrustScore(findings);

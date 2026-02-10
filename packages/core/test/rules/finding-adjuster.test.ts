@@ -217,6 +217,64 @@ describe('adjustFindings', () => {
     });
   });
 
+  describe('language-support category', () => {
+    it('should downgrade child_process for language-support extensions (ms-python)', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-002',
+          severity: 'critical',
+          evidence: { filePath: 'src/pythonRunner.js', matchedPattern: 'child_process-spawn-shell' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'language-support');
+      expect(adjusted[0]?.severity).toBe('medium');
+      expect(adjusted[0]?.description).toContain('language-support');
+    });
+
+    it('should downgrade data-exfiltration for language-support extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-001',
+          severity: 'critical',
+          category: 'data-exfiltration',
+          evidence: { filePath: 'src/env.js', matchedPattern: 'os.platform + http' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'language-support');
+      expect(adjusted[0]?.severity).toBe('medium');
+    });
+
+    it('should downgrade obfuscation for language-support extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-HIGH-001',
+          severity: 'high',
+          category: 'code-obfuscation',
+          evidence: { filePath: 'dist/server.js', matchedPattern: 'high-entropy' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'language-support');
+      expect(adjusted[0]?.severity).toBe('low');
+    });
+
+    it('should downgrade dynamic-url for language-support extensions', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-HIGH-002',
+          severity: 'high',
+          category: 'suspicious-network',
+          evidence: { filePath: 'src/pip.js', matchedPattern: 'dynamic-url' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'language-support');
+      expect(adjusted[0]?.severity).toBe('low');
+    });
+  });
+
   describe('general category', () => {
     it('should NOT adjust findings for general extensions', () => {
       const findings = [
@@ -268,6 +326,95 @@ describe('adjustFindings', () => {
 
       adjustFindings(findings, 'ai-assistant');
       expect(original.severity).toBe('critical');
+    });
+  });
+
+  describe('soft trust for trusted publishers', () => {
+    it('should apply additional downgrade for trusted publisher', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-HIGH-002',
+          severity: 'high',
+          category: 'suspicious-network',
+          evidence: { filePath: 'src/api.js', matchedPattern: 'http-to-ip' },
+        }),
+      ];
+
+      // Without trust: high stays high for general
+      const noTrust = adjustFindings(findings, 'general');
+      expect(noTrust[0]?.severity).toBe('high');
+
+      // With trusted publisher: high -> low
+      const withTrust = adjustFindings(findings, 'general', { publisher: 'ms-python' });
+      expect(withTrust[0]?.severity).toBe('low');
+      expect(withTrust[0]?.description).toContain('trusted publisher');
+    });
+
+    it('should apply trusted extension ID', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-002',
+          severity: 'critical',
+          evidence: { filePath: 'src/ext.js', matchedPattern: 'child_process-exec' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'general', {
+        extensionId: 'github.copilot',
+      });
+      expect(adjusted[0]?.severity).toBe('medium');
+      expect(adjusted[0]?.description).toContain('trusted publisher');
+    });
+
+    it('should stack category + trust adjustments', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-CRIT-002',
+          severity: 'critical',
+          evidence: { filePath: 'src/ext.js', matchedPattern: 'child_process-exec' },
+        }),
+      ];
+
+      // AI-assistant category downgrades critical -> medium
+      // Trusted publisher downgrades medium -> info
+      const adjusted = adjustFindings(findings, 'ai-assistant', {
+        publisher: 'github',
+      });
+      expect(adjusted[0]?.severity).toBe('info');
+      expect(adjusted[0]?.description).toContain('ai-assistant');
+      expect(adjusted[0]?.description).toContain('trusted publisher');
+    });
+
+    it('should NOT apply trust in strict mode', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-HIGH-002',
+          severity: 'high',
+          category: 'suspicious-network',
+          evidence: { filePath: 'src/api.js', matchedPattern: 'http-to-ip' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'general', {
+        publisher: 'ms-python',
+        strictMode: true,
+      });
+      expect(adjusted[0]?.severity).toBe('high');
+      expect(adjusted[0]?.description).not.toContain('trusted');
+    });
+
+    it('should NOT downgrade info findings further', () => {
+      const findings = [
+        makeFinding({
+          ruleId: 'EG-INFO-001',
+          severity: 'info',
+          category: 'info',
+          evidence: { filePath: 'src/ext.js', matchedPattern: 'something' },
+        }),
+      ];
+
+      const adjusted = adjustFindings(findings, 'general', { publisher: 'github' });
+      expect(adjusted[0]?.severity).toBe('info');
     });
   });
 });

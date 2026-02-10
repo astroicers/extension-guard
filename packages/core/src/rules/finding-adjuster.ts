@@ -1,5 +1,6 @@
 import type { Finding, Severity } from '../types/index.js';
 import type { ExtensionCategory } from '../scanner/extension-categorizer.js';
+import { isTrustedPublisher, isTrustedExtension } from '../data/trusted-publishers.js';
 
 /**
  * Severity one level below the given severity.
@@ -53,7 +54,13 @@ const EXPECTED_BEHAVIORS: Partial<Record<ExtensionCategory, ExpectedBehavior[]>>
     },
     {
       // AI tools collect system info for telemetry / model context
+      // This includes os.hostname, os.platform, os.userInfo, process.env, etc.
       ruleIds: ['EG-CRIT-001'],
+    },
+    {
+      // AI tools may have obfuscated/minified bundled code
+      ruleIds: ['EG-HIGH-001'],
+      matchedPatterns: ['high-entropy', 'large-base64'],
     },
   ],
 
@@ -119,6 +126,33 @@ const EXPECTED_BEHAVIORS: Partial<Record<ExtensionCategory, ExpectedBehavior[]>>
       ],
     },
   ],
+
+  'language-support': [
+    {
+      // Language servers spawn interpreters/compilers (python, go, rustc, javac)
+      ruleIds: ['EG-CRIT-002'],
+      matchedPatterns: [
+        'child_process-exec',
+        'child_process-execSync',
+        'child_process-spawn-shell',
+        'dynamic-require',
+      ],
+    },
+    {
+      // Language servers may collect system info for environment detection
+      ruleIds: ['EG-CRIT-001'],
+    },
+    {
+      // Language servers may have bundled code with high entropy
+      ruleIds: ['EG-HIGH-001'],
+      matchedPatterns: ['high-entropy', 'large-base64'],
+    },
+    {
+      // Language servers may make network requests for package management
+      ruleIds: ['EG-HIGH-002'],
+      matchedPatterns: ['dynamic-url'],
+    },
+  ],
 };
 
 /**
@@ -149,32 +183,77 @@ function matchesExpectedBehavior(finding: Finding, behavior: ExpectedBehavior): 
 }
 
 /**
- * Adjust findings based on the extension's inferred category.
- * Findings that match expected behavior for the category are downgraded in severity.
+ * Options for adjusting findings.
+ */
+export interface AdjustFindingsOptions {
+  /** Publisher name for soft trust check */
+  publisher?: string;
+  /** Full extension ID (publisher.name) for soft trust check */
+  extensionId?: string;
+  /** Skip soft trust adjustments (strict mode) */
+  strictMode?: boolean;
+}
+
+/**
+ * Adjust findings based on the extension's inferred category and trust status.
+ *
+ * Two layers of adjustment:
+ * 1. Category-based: Expected behaviors for extension type (e.g., AI tools use network)
+ * 2. Soft Trust: Trusted publishers get an additional severity downgrade
+ *
  * Returns a new array with adjusted findings (original array is not mutated).
  */
 export function adjustFindings(
   findings: Finding[],
-  category: ExtensionCategory
+  category: ExtensionCategory,
+  options: AdjustFindingsOptions = {}
 ): Finding[] {
+  const { publisher, extensionId, strictMode = false } = options;
   const behaviors = EXPECTED_BEHAVIORS[category];
 
-  // No adjustments for 'general' or categories without defined expected behaviors
-  if (!behaviors || behaviors.length === 0) {
-    return findings;
-  }
+  // Check if this is a trusted extension
+  const isTrusted =
+    !strictMode &&
+    ((publisher && isTrustedPublisher(publisher)) ||
+      (extensionId && isTrustedExtension(extensionId)));
 
   return findings.map((finding) => {
-    for (const behavior of behaviors) {
-      if (matchesExpectedBehavior(finding, behavior)) {
-        const downgraded = DOWNGRADE_MAP[finding.severity];
-        return {
-          ...finding,
-          severity: downgraded,
-          description: `${finding.description} [Downgraded: expected behavior for ${category} extension]`,
-        };
+    let adjustedFinding = finding;
+    let reasons: string[] = [];
+
+    // Layer 1: Category-based adjustment
+    if (behaviors && behaviors.length > 0) {
+      for (const behavior of behaviors) {
+        if (matchesExpectedBehavior(finding, behavior)) {
+          const downgraded = DOWNGRADE_MAP[adjustedFinding.severity];
+          adjustedFinding = {
+            ...adjustedFinding,
+            severity: downgraded,
+          };
+          reasons.push(`expected behavior for ${category} extension`);
+          break;
+        }
       }
     }
-    return finding;
+
+    // Layer 2: Soft Trust adjustment (additional downgrade for trusted publishers)
+    if (isTrusted && adjustedFinding.severity !== 'info') {
+      const downgraded = DOWNGRADE_MAP[adjustedFinding.severity];
+      adjustedFinding = {
+        ...adjustedFinding,
+        severity: downgraded,
+      };
+      reasons.push(`trusted publisher`);
+    }
+
+    // Add reason to description if any adjustments were made
+    if (reasons.length > 0) {
+      adjustedFinding = {
+        ...adjustedFinding,
+        description: `${finding.description} [Downgraded: ${reasons.join(' + ')}]`,
+      };
+    }
+
+    return adjustedFinding;
   });
 }
