@@ -33,6 +33,18 @@ export const TRUSTED_PUBLISHERS = [
   'esbenp', // Prettier
   'dbaeumer', // ESLint
   'eamodio', // GitLens
+
+  // Cloud providers
+  'amazonwebservices',
+  'googlecloudtools',
+  'hashicorp',
+
+  // Other major vendors
+  'jetbrains',
+  'docker',
+  'mongodb',
+  'prisma',
+  'vscjava', // Microsoft Java
 ];
 
 /**

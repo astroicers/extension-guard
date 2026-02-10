@@ -28,6 +28,15 @@ const LANGUAGE_SUPPORT_PUBLISHERS = [
   'oracle',
   'julialang',
   'haskell',
+  // Additional language support publishers
+  'zigtools',
+  'elixir-lsp',
+  'dart-code',
+  'scala-lang',
+  'vscjava',
+  'crystal-lang-tools',
+  'nim-lang',
+  'vlang-vscode',
 ];
 
 const AI_KEYWORDS = [
@@ -51,6 +60,19 @@ const AI_KEYWORDS = [
   'continue',
   'cursor',
   'supermaven',
+  // Additional AI tools
+  'aider',
+  'codestral',
+  'mistral',
+  'deepseek',
+  'qwen',
+  'sourcery',
+  'codewhisperer',
+  'amazon q',
+  'bito',
+  'blackbox',
+  'codegpt',
+  'cody', // Sourcegraph
 ];
 
 /**
