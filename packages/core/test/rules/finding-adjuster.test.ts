@@ -535,11 +535,14 @@ describe('adjustFindings', () => {
         }),
       ];
 
+      // github.copilot is trusted AND mega popular
+      // critical -> medium (trusted) -> info (mega popular double downgrade)
       const adjusted = adjustFindings(findings, 'general', {
         extensionId: 'github.copilot',
       });
-      expect(adjusted[0]?.severity).toBe('medium');
+      expect(adjusted[0]?.severity).toBe('info');
       expect(adjusted[0]?.description).toContain('trusted publisher');
+      expect(adjusted[0]?.description).toContain('mega popular');
     });
 
     it('should stack category + trust adjustments', () => {

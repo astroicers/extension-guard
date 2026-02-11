@@ -8,6 +8,10 @@ export interface ScanOptions {
   skipRules?: string[];
   concurrency?: number;
   timeout?: number;
+  /** Enable integrity verification against known-good hashes */
+  verifyIntegrity?: boolean;
+  /** Path to custom hash database */
+  hashDatabasePath?: string;
 }
 
 export interface InspectOptions {

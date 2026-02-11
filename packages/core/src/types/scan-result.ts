@@ -2,6 +2,20 @@ import type { Severity, RiskLevel } from './severity.js';
 import type { ExtensionInfo } from './extension.js';
 import type { Finding, FindingCategory } from './finding.js';
 
+export type IntegrityStatus = 'verified' | 'modified' | 'unknown' | 'skipped' | 'error';
+
+export interface IntegrityInfo {
+  status: IntegrityStatus;
+  /** Which parts were modified (if status is 'modified') */
+  modifications?: {
+    manifest: boolean;
+    content: boolean;
+    structure: boolean;
+  };
+  /** Combined hash of this extension */
+  hash?: string;
+}
+
 export interface ScanResult {
   extensionId: string;
   displayName: string;
@@ -12,6 +26,8 @@ export interface ScanResult {
   metadata: ExtensionInfo;
   analyzedFiles: number;
   scanDurationMs: number;
+  /** Integrity verification result (only if --verify-integrity is used) */
+  integrity?: IntegrityInfo;
 }
 
 export interface ScanSummary {

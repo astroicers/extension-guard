@@ -11,8 +11,21 @@ import {
   loadPolicyConfig,
   PolicyEngine,
   DETECTION_RULES,
+  detectIDEPaths,
+  readExtensionsFromDirectory,
+  collectFiles,
+  createHashRecord,
+  saveHashDatabase,
+  loadHashDatabase,
+  getDefaultDatabasePath,
 } from '@aspect-guard/core';
-import type { FullScanReport, Reporter, PolicyViolation, PolicyAction } from '@aspect-guard/core';
+import type {
+  FullScanReport,
+  Reporter,
+  PolicyViolation,
+  PolicyAction,
+  ExtensionHash,
+} from '@aspect-guard/core';
 
 // CLI output configuration
 interface OutputConfig {
@@ -168,6 +181,103 @@ export function createCli(): Command {
       console.log();
     });
 
+  // Baseline command - generate hash database from installed extensions
+  program
+    .command('baseline')
+    .description(
+      'Generate integrity hash database from currently installed extensions\n\n' +
+        'This creates a baseline of known-good hashes that can be used to detect\n' +
+        'tampering or supply chain attacks on trusted extensions.\n\n' +
+        'Examples:\n' +
+        '  extension-guard baseline                  Generate baseline from all IDEs\n' +
+        '  extension-guard baseline -o hashes.json  Output to custom file\n' +
+        '  extension-guard baseline --append        Add to existing database'
+    )
+    .option('-p, --path <paths...>', 'Custom extension paths to scan')
+    .option('-o, --output <file>', 'Output path for hash database')
+    .option('--append', 'Append to existing database instead of overwriting')
+    .option('-q, --quiet', 'Only show results, no progress')
+    .action(async (options) => {
+      const spinner = options.quiet ? null : ora('Generating integrity baseline...').start();
+
+      try {
+        // Detect IDE paths
+        let idePaths: string[];
+        if (options.path && options.path.length > 0) {
+          idePaths = options.path;
+        } else {
+          const ides = detectIDEPaths();
+          idePaths = ides.map((ide) => ide.path);
+        }
+
+        if (idePaths.length === 0) {
+          if (spinner) spinner.fail('No extension directories found');
+          console.error(chalk.red('Error: No IDE extension directories detected.'));
+          console.error(chalk.dim('Use --path to specify custom paths.'));
+          process.exit(3);
+        }
+
+        // Load existing database if appending
+        let hashes: Map<string, ExtensionHash>;
+        const outputPath = options.output || getDefaultDatabasePath();
+        if (options.append) {
+          hashes = loadHashDatabase(outputPath);
+        } else {
+          hashes = new Map();
+        }
+
+        // Collect hashes from all extensions
+        let processed = 0;
+        let errors = 0;
+
+        for (const idePath of idePaths) {
+          if (spinner) spinner.text = `Processing ${idePath}...`;
+
+          try {
+            const extensions = await readExtensionsFromDirectory(idePath);
+
+            for (const ext of extensions) {
+              try {
+                const files = await collectFiles(ext.installPath);
+                const record = createHashRecord(ext.id, ext.version, files, 'manual');
+                hashes.set(`${ext.id}@${ext.version}`, record);
+                processed++;
+              } catch {
+                errors++;
+              }
+            }
+          } catch {
+            errors++;
+          }
+        }
+
+        // Save database
+        saveHashDatabase(hashes, outputPath);
+
+        if (spinner) spinner.succeed('Baseline generated');
+
+        console.log();
+        console.log(chalk.bold('Integrity Baseline Generated'));
+        console.log(chalk.dim('━'.repeat(60)));
+        console.log(`${icons.check()} Processed: ${chalk.green(processed)} extensions`);
+        if (errors > 0) {
+          console.log(`${icons.cross()} Errors: ${chalk.yellow(errors)}`);
+        }
+        console.log(`${icons.folder()} Database: ${chalk.cyan(outputPath)}`);
+        console.log();
+        console.log('Usage:');
+        console.log(`  ${chalk.cyan('extension-guard scan --verify-integrity')}`);
+        if (options.output) {
+          console.log(`  ${chalk.cyan(`extension-guard scan --verify-integrity --hash-db ${outputPath}`)}`);
+        }
+        console.log();
+      } catch (error) {
+        if (spinner) spinner.fail('Baseline generation failed');
+        console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+        process.exit(3);
+      }
+    });
+
   program
     .command('scan')
     .description(
@@ -184,6 +294,8 @@ export function createCli(): Command {
     .option('-s, --severity <level>', 'Minimum severity to show', 'info')
     .option('-q, --quiet', 'Only show results, no progress')
     .option('--include-safe', 'Include safe extensions in output')
+    .option('--verify-integrity', 'Verify extension integrity against known-good hashes')
+    .option('--hash-db <path>', 'Path to custom hash database file')
     .action(async (options) => {
       const isJsonOutput = options.format === 'json' || options.format === 'sarif';
       const spinner = options.quiet || isJsonOutput ? null : ora('Scanning extensions...').start();
@@ -193,6 +305,8 @@ export function createCli(): Command {
           autoDetect: !options.path,
           idePaths: options.path ?? [],
           severity: options.severity,
+          verifyIntegrity: options.verifyIntegrity ?? false,
+          hashDatabasePath: options.hashDb,
         });
 
         const report = await scanner.scan();

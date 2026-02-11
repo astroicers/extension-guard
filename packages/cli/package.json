@@ -1,6 +1,6 @@
 {
   "name": "extension-guard",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "CLI for scanning VSCode extensions for security issues",
   "type": "module",
   "bin": {

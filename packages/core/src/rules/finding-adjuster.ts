@@ -1,6 +1,8 @@
 import type { Finding, Severity } from '../types/index.js';
 import type { ExtensionCategory } from '../scanner/extension-categorizer.js';
 import { isTrustedPublisher, isTrustedExtension } from '../data/trusted-publishers.js';
+import { isVerifiedPublisher } from '../data/verified-publishers.js';
+import { getPopularityTier } from '../data/popular-extensions.js';
 
 /**
  * Severity one level below the given severity.
@@ -309,14 +311,29 @@ export interface AdjustFindingsOptions {
   extensionId?: string;
   /** Skip soft trust adjustments (strict mode) */
   strictMode?: boolean;
+  /** Map of file paths to file contents for bundle detection */
+  files?: Map<string, string>;
 }
+
+/**
+ * Two-level downgrade map (for mega popular extensions)
+ */
+const DOUBLE_DOWNGRADE_MAP: Record<Severity, Severity> = {
+  critical: 'low',
+  high: 'info',
+  medium: 'info',
+  low: 'info',
+  info: 'info',
+};
 
 /**
  * Adjust findings based on the extension's inferred category and trust status.
  *
- * Two layers of adjustment:
+ * Four layers of adjustment:
  * 1. Category-based: Expected behaviors for extension type (e.g., AI tools use network)
  * 2. Soft Trust: Trusted publishers get an additional severity downgrade
+ * 3. Verified Publisher: Verified publishers on marketplace get severity downgrade
+ * 4. Popularity: Extensions with 10M+ downloads get double downgrade, 1M+ get single
  *
  * Returns a new array with adjusted findings (original array is not mutated).
  */
@@ -328,11 +345,15 @@ export function adjustFindings(
   const { publisher, extensionId, strictMode = false } = options;
   const behaviors = EXPECTED_BEHAVIORS[category];
 
-  // Check if this is a trusted extension
+  // Check trust levels (only if not in strict mode)
   const isTrusted =
     !strictMode &&
     ((publisher && isTrustedPublisher(publisher)) ||
       (extensionId && isTrustedExtension(extensionId)));
+
+  const isVerified = !strictMode && publisher && isVerifiedPublisher(publisher);
+
+  const popularityTier = !strictMode && extensionId ? getPopularityTier(extensionId) : null;
 
   return findings.map((finding) => {
     let adjustedFinding = finding;
@@ -361,6 +382,37 @@ export function adjustFindings(
         severity: downgraded,
       };
       reasons.push(`trusted publisher`);
+    }
+
+    // Layer 3: Verified Publisher adjustment (if not already trusted)
+    if (!isTrusted && isVerified && adjustedFinding.severity !== 'info') {
+      const downgraded = DOWNGRADE_MAP[adjustedFinding.severity];
+      adjustedFinding = {
+        ...adjustedFinding,
+        severity: downgraded,
+      };
+      reasons.push(`verified publisher`);
+    }
+
+    // Layer 4: Popularity-based adjustment
+    if (popularityTier && adjustedFinding.severity !== 'info') {
+      if (popularityTier === 'mega') {
+        // 10M+ downloads: double downgrade
+        const downgraded = DOUBLE_DOWNGRADE_MAP[adjustedFinding.severity];
+        adjustedFinding = {
+          ...adjustedFinding,
+          severity: downgraded,
+        };
+        reasons.push(`mega popular (10M+ downloads)`);
+      } else if (popularityTier === 'popular') {
+        // 1M+ downloads: single downgrade
+        const downgraded = DOWNGRADE_MAP[adjustedFinding.severity];
+        adjustedFinding = {
+          ...adjustedFinding,
+          severity: downgraded,
+        };
+        reasons.push(`popular (1M+ downloads)`);
+      }
     }
 
     // Add reason to description if any adjustments were made

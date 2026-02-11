@@ -10,6 +10,7 @@ import type {
   FindingCategory,
   DetectedIDE,
   ExtensionManifest,
+  IntegrityInfo,
 } from '../types/index.js';
 import { detectIDEPaths } from './ide-detector.js';
 import { readExtensionsFromDirectory } from './extension-reader.js';
@@ -19,6 +20,8 @@ import { RuleEngine } from '../rules/rule-engine.js';
 import { adjustFindings } from '../rules/finding-adjuster.js';
 import { registerBuiltInRules } from '../rules/built-in/index.js';
 import { categorizeExtension } from './extension-categorizer.js';
+import { verifyIntegrity, loadHashDatabase } from '../integrity/index.js';
+import type { ExtensionHash } from '../integrity/index.js';
 
 // Register built-in rules once at module load
 let rulesRegistered = false;
@@ -37,6 +40,8 @@ const DEFAULT_OPTIONS: Required<ScanOptions> = {
   skipRules: [],
   concurrency: 4,
   timeout: 30000,
+  verifyIntegrity: false,
+  hashDatabasePath: '',
 };
 
 const SEVERITY_PENALTY: Record<Severity, number> = {
@@ -50,6 +55,7 @@ const SEVERITY_PENALTY: Record<Severity, number> = {
 export class ExtensionGuardScanner {
   private options: Required<ScanOptions>;
   private ruleEngine: RuleEngine;
+  private hashDatabase: Map<string, ExtensionHash> | null = null;
 
   constructor(options?: Partial<ScanOptions>) {
     ensureRulesRegistered();
@@ -59,6 +65,13 @@ export class ExtensionGuardScanner {
       skipRules: this.options.skipRules.length > 0 ? this.options.skipRules : undefined,
       minSeverity: this.options.severity,
     });
+
+    // Load hash database if integrity verification is enabled
+    if (this.options.verifyIntegrity) {
+      this.hashDatabase = loadHashDatabase(
+        this.options.hashDatabasePath || undefined
+      );
+    }
   }
 
   async scan(options?: Partial<ScanOptions>): Promise<FullScanReport> {
@@ -157,7 +170,44 @@ export class ExtensionGuardScanner {
 
     // Calculate trust score
     const trustScore = this.calculateTrustScore(findings);
-    const riskLevel = this.calculateRiskLevel(trustScore, findings);
+    let riskLevel = this.calculateRiskLevel(trustScore, findings);
+
+    // Verify integrity if enabled
+    let integrity: IntegrityInfo | undefined;
+    if (this.options.verifyIntegrity && this.hashDatabase) {
+      const result = verifyIntegrity(ext.id, ext.version, files, this.hashDatabase);
+      integrity = {
+        status: result.status,
+        modifications: result.modifications,
+        hash: result.computedHashes?.combinedHash,
+      };
+
+      // If extension is modified, override risk level to critical
+      if (result.status === 'modified') {
+        riskLevel = 'critical';
+        // Add a synthetic finding for the integrity violation
+        findings.unshift({
+          id: `integrity-${ext.id}`,
+          ruleId: 'EG-CRIT-100',
+          severity: 'critical',
+          category: 'supply-chain',
+          title: 'Extension Integrity Compromised',
+          description: `Extension files have been modified from known-good version. Modifications: ${
+            result.modifications?.manifest ? 'manifest ' : ''
+          }${result.modifications?.content ? 'content ' : ''}${
+            result.modifications?.structure ? 'structure' : ''
+          }`.trim(),
+          evidence: {
+            filePath: ext.installPath,
+            matchedPattern: 'integrity-violation',
+          },
+          remediation:
+            'Reinstall the extension from the official marketplace. If this persists, report to the extension author.',
+        });
+      }
+    } else if (this.options.verifyIntegrity) {
+      integrity = { status: 'skipped' };
+    }
 
     return {
       extensionId: ext.id,
@@ -169,15 +219,25 @@ export class ExtensionGuardScanner {
       metadata: ext,
       analyzedFiles: files.size,
       scanDurationMs: Date.now() - startTime,
+      integrity,
     };
   }
 
   private calculateTrustScore(findings: ScanResult['findings']): number {
     let score = 100;
 
-    // Apply penalties per finding
+    // Count findings by rule to avoid excessive penalty from bundled code
+    const findingsByRule = new Map<string, number>();
+
     for (const finding of findings) {
-      score -= SEVERITY_PENALTY[finding.severity];
+      const count = findingsByRule.get(finding.ruleId) ?? 0;
+
+      // Cap each rule's penalty contribution (max 5 findings per rule for scoring)
+      // This prevents bundled code with 1000+ similar patterns from zeroing the score
+      if (count < 5) {
+        score -= SEVERITY_PENALTY[finding.severity];
+        findingsByRule.set(finding.ruleId, count + 1);
+      }
     }
 
     // Clamp to [0, 100]
@@ -185,12 +245,18 @@ export class ExtensionGuardScanner {
   }
 
   private calculateRiskLevel(trustScore: number, findings: ScanResult['findings']): RiskLevel {
-    // If any critical finding, always critical
-    if (findings.some((f) => f.severity === 'critical')) {
+    // Only non-downgraded critical/high findings affect risk level
+    // (downgraded findings have "[Downgraded:" in description)
+    const realFindings = findings.filter(
+      (f) => !f.description?.includes('[Downgraded:')
+    );
+
+    // If any real critical finding, always critical
+    if (realFindings.some((f) => f.severity === 'critical')) {
       return 'critical';
     }
-    // If any high finding, at least high
-    if (findings.some((f) => f.severity === 'high')) {
+    // If any real high finding, at least high
+    if (realFindings.some((f) => f.severity === 'high')) {
       return 'high';
     }
 
