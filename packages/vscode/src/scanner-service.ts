@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { ExtensionGuardScanner, ScanResult, FullScanReport } from '@aspect-guard/core';
 
 export class ScannerService {
@@ -10,9 +11,51 @@ export class ScannerService {
   }
 
   async scanAll(): Promise<FullScanReport> {
-    this.lastReport = await this.scanner.scan();
+    // Get extension paths directly from VS Code API
+    // This works correctly in all environments (local, WSL, SSH, Insiders, etc.)
+    const extensionPaths = this.getVSCodeExtensionPaths();
+
+    if (extensionPaths.length > 0) {
+      // Scan using VS Code's known extension paths
+      this.lastReport = await this.scanner.scan({
+        idePaths: extensionPaths,
+        autoDetect: false,
+      });
+    } else {
+      // Fallback to auto-detect if no extensions found via API
+      this.lastReport = await this.scanner.scan();
+    }
+
     this.lastReport.results.forEach((r) => this.cache.set(r.extensionId, r));
     return this.lastReport;
+  }
+
+  /**
+   * Get unique extension directory paths from VS Code API.
+   * This is more reliable than filesystem detection, especially in remote environments.
+   */
+  private getVSCodeExtensionPaths(): string[] {
+    const paths = new Set<string>();
+
+    for (const ext of vscode.extensions.all) {
+      // Skip built-in extensions (they're part of VS Code itself)
+      if (ext.packageJSON?.isBuiltin) {
+        continue;
+      }
+
+      // Get the parent directory (extensions folder) from extension path
+      const extPath = ext.extensionPath;
+      if (extPath) {
+        // extensionPath is like: /home/user/.vscode-server/extensions/publisher.name-1.0.0
+        // We want: /home/user/.vscode-server/extensions
+        const parentDir = extPath.substring(0, extPath.lastIndexOf('/'));
+        if (parentDir) {
+          paths.add(parentDir);
+        }
+      }
+    }
+
+    return Array.from(paths);
   }
 
   async scanExtensionPath(extensionPath: string): Promise<ScanResult | null> {
