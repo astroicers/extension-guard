@@ -42,14 +42,10 @@ export const IDE_PATHS: Record<string, string[]> = {
   ],
 
   // VS Code Server - Remote SSH connections
-  'VS Code Server': [
-    '~/.vscode-server/extensions',
-  ],
+  'VS Code Server': ['~/.vscode-server/extensions'],
 
   // VS Code Server Insiders - Remote SSH for Insiders
-  'VS Code Server Insiders': [
-    '~/.vscode-server-insiders/extensions',
-  ],
+  'VS Code Server Insiders': ['~/.vscode-server-insiders/extensions'],
 
   // Cursor - AI-powered code editor (VS Code fork)
   // https://cursor.com
@@ -64,9 +60,7 @@ export const IDE_PATHS: Record<string, string[]> = {
   ],
 
   // Cursor Server - Remote Cursor connections
-  'Cursor Server': [
-    '~/.cursor-server/extensions',
-  ],
+  'Cursor Server': ['~/.cursor-server/extensions'],
 
   // Windsurf - Codeium AI IDE (VS Code fork)
   // https://codeium.com/windsurf
@@ -81,9 +75,7 @@ export const IDE_PATHS: Record<string, string[]> = {
   ],
 
   // Windsurf Server - Remote Windsurf connections
-  'Windsurf Server': [
-    '~/.windsurf-server/extensions',
-  ],
+  'Windsurf Server': ['~/.windsurf-server/extensions'],
 
   // Trae - ByteDance AI IDE (VS Code fork)
   // https://www.trae.ai / https://www.marscode.com
@@ -114,10 +106,7 @@ export const IDE_PATHS: Record<string, string[]> = {
   ],
 
   // Code - OSS (open source build from Microsoft repo)
-  'Code - OSS': [
-    '~/.config/Code - OSS/extensions',
-    '~/.vscode-oss/extensions',
-  ],
+  'Code - OSS': ['~/.config/Code - OSS/extensions', '~/.vscode-oss/extensions'],
 
   // Positron - Posit's data science IDE (VS Code fork)
   // https://github.com/posit-dev/positron
@@ -129,39 +118,24 @@ export const IDE_PATHS: Record<string, string[]> = {
 
   // Theia - Eclipse Theia IDE (VS Code compatible)
   // https://theia-ide.org
-  Theia: [
-    '~/.theia/extensions',
-    '%USERPROFILE%/.theia/extensions',
-  ],
+  Theia: ['~/.theia/extensions', '%USERPROFILE%/.theia/extensions'],
 
   // OpenVSCode Server - Web-based VS Code
   // https://github.com/gitpod-io/openvscode-server
-  'OpenVSCode Server': [
-    '~/.openvscode-server/extensions',
-  ],
+  'OpenVSCode Server': ['~/.openvscode-server/extensions'],
 
   // code-server - VS Code in the browser
   // https://github.com/coder/code-server
-  'code-server': [
-    '~/.local/share/code-server/extensions',
-    '~/.config/code-server/extensions',
-  ],
+  'code-server': ['~/.local/share/code-server/extensions', '~/.config/code-server/extensions'],
 
   // GitHub Codespaces (when accessed locally)
-  'GitHub Codespaces': [
-    '~/.codespaces/.vscode-remote/extensions',
-  ],
+  'GitHub Codespaces': ['~/.codespaces/.vscode-remote/extensions'],
 
   // Gitpod
-  Gitpod: [
-    '/workspace/.gitpod/extensions',
-    '~/.gitpod/extensions',
-  ],
+  Gitpod: ['/workspace/.gitpod/extensions', '~/.gitpod/extensions'],
 
   // DevPod
-  DevPod: [
-    '~/.devpod/extensions',
-  ],
+  DevPod: ['~/.devpod/extensions'],
 
   // Lapce - Lightning-fast native code editor (has its own extension format but partially compatible)
   // https://lapce.dev
@@ -200,8 +174,14 @@ export function expandPath(inputPath: string): string {
   // Windows environment variables
   if (process.platform === 'win32') {
     result = result.replace(/%USERPROFILE%/gi, home);
-    result = result.replace(/%APPDATA%/gi, process.env.APPDATA || path.join(home, 'AppData', 'Roaming'));
-    result = result.replace(/%LOCALAPPDATA%/gi, process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local'));
+    result = result.replace(
+      /%APPDATA%/gi,
+      process.env.APPDATA || path.join(home, 'AppData', 'Roaming')
+    );
+    result = result.replace(
+      /%LOCALAPPDATA%/gi,
+      process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local')
+    );
   } else {
     // On non-Windows, just remove Windows-style placeholders if they exist
     result = result.replace(/%USERPROFILE%/gi, home);
