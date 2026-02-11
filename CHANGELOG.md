@@ -1,3 +1,10 @@
+## [0.5.1](https://github.com/astroicers/extension-guard/compare/v0.5.0...v0.5.1) (2026-02-11)
+
+
+### Performance Improvements
+
+* **scanner:** implement concurrent extension scanning ([989b1d9](https://github.com/astroicers/extension-guard/commit/989b1d9f4cdb8f1973144d430be900627d0b39b6))
+
 # [0.5.0](https://github.com/astroicers/extension-guard/compare/v0.4.0...v0.5.0) (2026-02-11)
 
 
