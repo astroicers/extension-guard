@@ -1,3 +1,10 @@
+## [0.5.4](https://github.com/astroicers/extension-guard/compare/v0.5.3...v0.5.4) (2026-02-11)
+
+
+### Bug Fixes
+
+* retry marketplace publish ([b58cc51](https://github.com/astroicers/extension-guard/commit/b58cc516b75e3bca089e2b80348cfbc621f5ec3d))
+
 ## [0.5.3](https://github.com/astroicers/extension-guard/compare/v0.5.2...v0.5.3) (2026-02-11)
 
 
