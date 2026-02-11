@@ -2,8 +2,6 @@
 
 Security scanner that detects malicious behaviors in your installed VS Code extensions.
 
-![Extension Guard Sidebar](https://raw.githubusercontent.com/astroicers/extension-guard/main/packages/vscode/resources/screenshot-sidebar.png)
-
 ## Features
 
 ### Real-time Security Scanning
