@@ -1,3 +1,10 @@
+## [0.5.3](https://github.com/astroicers/extension-guard/compare/v0.5.2...v0.5.3) (2026-02-11)
+
+
+### Bug Fixes
+
+* trigger release with updated VSCE_PAT ([b2c0e57](https://github.com/astroicers/extension-guard/commit/b2c0e575c83a59771c02fbddda73e555b78a2635))
+
 ## [0.5.2](https://github.com/astroicers/extension-guard/compare/v0.5.1...v0.5.2) (2026-02-11)
 
 
