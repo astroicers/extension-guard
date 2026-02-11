@@ -1,8 +1,13 @@
 import type { DetectionRule } from '../rule.interface.js';
 import type { Evidence } from '../../types/index.js';
 import type { ExtensionManifest } from '../../types/index.js';
+import {
+  matchPatternsInFiles,
+  hasPatternInContext,
+  type MatchPattern,
+} from '../pattern-matcher.js';
 
-const SENSITIVE_PATHS = [
+const SENSITIVE_PATHS: MatchPattern[] = [
   {
     name: 'ssh-keys',
     pattern:
@@ -33,37 +38,9 @@ export const critCredentialAccess: DetectionRule = {
   enabled: true,
 
   detect(files: Map<string, string>, _manifest: ExtensionManifest): Evidence[] {
-    const evidences: Evidence[] = [];
-
-    for (const [filePath, content] of files) {
-      if (!filePath.endsWith('.js') && !filePath.endsWith('.ts')) {
-        continue;
-      }
-
-      const lines = content.split('\n');
-
-      for (const { name, pattern } of SENSITIVE_PATHS) {
-        pattern.lastIndex = 0;
-        let match;
-        while ((match = pattern.exec(content)) !== null) {
-          const startIndex = Math.max(0, match.index - 200);
-          const endIndex = Math.min(content.length, match.index + match[0].length + 200);
-          const context = content.slice(startIndex, endIndex);
-
-          if (FILE_READ_CONTEXT.test(context)) {
-            const lineNumber = content.slice(0, match.index).split('\n').length;
-            evidences.push({
-              filePath,
-              lineNumber,
-              lineContent: lines[lineNumber - 1]?.trim(),
-              matchedPattern: name,
-              snippet: match[0],
-            });
-          }
-        }
-      }
-    }
-
-    return evidences;
+    return matchPatternsInFiles(files, SENSITIVE_PATHS, {}, {
+      validate: (value, content, matchIndex) =>
+        hasPatternInContext(content, matchIndex, value.length, FILE_READ_CONTEXT, 200),
+    });
   },
 };

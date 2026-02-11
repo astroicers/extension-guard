@@ -141,31 +141,7 @@ function calculateSecretEntropy(str: string): number {
   return entropy;
 }
 
-function isInComment(content: string, matchIndex: number): boolean {
-  // Find the start of the line containing the match
-  const lineStart = content.lastIndexOf('\n', matchIndex) + 1;
-  const lineContent = content.slice(lineStart, matchIndex);
-
-  // Check for single-line comment
-  if (lineContent.includes('//')) {
-    return true;
-  }
-
-  // Check for block comment - look for /* before the match without a closing */
-  const beforeMatch = content.slice(0, matchIndex);
-  const lastBlockStart = beforeMatch.lastIndexOf('/*');
-  const lastBlockEnd = beforeMatch.lastIndexOf('*/');
-
-  if (lastBlockStart > lastBlockEnd) {
-    return true;
-  }
-
-  return false;
-}
-
-function getLineNumber(content: string, index: number): number {
-  return content.slice(0, index).split('\n').length;
-}
+import { isInComment, getLineNumber } from '../pattern-matcher.js';
 
 export const highHardcodedSecret: DetectionRule = {
   id: 'EG-HIGH-006',
