@@ -8,7 +8,14 @@ export * from './types/index.js';
 
 // Scanner
 export { ExtensionGuardScanner } from './scanner/scanner.js';
-export { detectIDEPaths, IDE_PATHS, expandPath } from './scanner/ide-detector.js';
+export {
+  detectIDEPaths,
+  IDE_PATHS,
+  expandPath,
+  getSupportedIDEs,
+  isIDEInstalled,
+  getIDEExtensionPath,
+} from './scanner/ide-detector.js';
 export { readExtension, readExtensionsFromDirectory } from './scanner/extension-reader.js';
 export { collectFiles, shouldCollectFile } from './scanner/file-collector.js';
 export { categorizeExtension } from './scanner/extension-categorizer.js';
