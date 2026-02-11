@@ -20,7 +20,11 @@
     "release:major": "./scripts/release.sh major"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
     "prettier": "^3.2.0",
+    "semantic-release": "^25.0.3",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
   }

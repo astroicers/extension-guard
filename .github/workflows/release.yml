@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
   release:
@@ -11,9 +11,18 @@ jobs:
 
     permissions:
       contents: write
+      issues: write
+      pull-requests: write
+
+    outputs:
+      new_release_published: ${{ steps.semantic-release.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic-release.outputs.new_release_version }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -36,42 +45,65 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - name: Semantic Release
+        id: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+        run: |
+          npx semantic-release 2>&1 | tee semantic-release.log
+          if grep -q "Published release" semantic-release.log; then
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+            VERSION=$(grep -oP "Published release \K[0-9]+\.[0-9]+\.[0-9]+" semantic-release.log || echo "")
+            echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Rebuild with new version
+        if: steps.semantic-release.outputs.new_release_published == 'true'
+        run: pnpm build
+
       - name: Publish @aspect-guard/core to npm
+        if: steps.semantic-release.outputs.new_release_published == 'true'
         run: pnpm --filter @aspect-guard/core publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         continue-on-error: true
 
       - name: Publish extension-guard CLI to npm
+        if: steps.semantic-release.outputs.new_release_published == 'true'
         run: pnpm --filter extension-guard publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         continue-on-error: true
 
       - name: Package VSCode extension
+        if: steps.semantic-release.outputs.new_release_published == 'true'
         run: pnpm --filter extension-guard-vscode package
 
-      - name: Get version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
-          files: |
-            packages/vscode/extension-guard-vscode-${{ steps.version.outputs.VERSION }}.vsix
+      - name: Upload VSIX to GitHub Release
+        if: steps.semantic-release.outputs.new_release_published == 'true'
+        run: |
+          VERSION=${{ steps.semantic-release.outputs.new_release_version }}
+          gh release upload "v${VERSION}" "packages/vscode/extension-guard-vscode-${VERSION}.vsix" --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Optional: Publish to VS Code Marketplace
+  # Publish to VS Code Marketplace
   publish-vscode:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ vars.PUBLISH_VSCODE == 'true' }}
+    if: needs.release.outputs.new_release_published == 'true'
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main # Get the updated main with new version
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -97,14 +129,16 @@ jobs:
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
-  # Optional: Publish to Open VSX Registry
+  # Publish to Open VSX Registry
   publish-openvsx:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ vars.PUBLISH_OPENVSX == 'true' }}
+    if: needs.release.outputs.new_release_published == 'true' && vars.PUBLISH_OPENVSX == 'true'
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
