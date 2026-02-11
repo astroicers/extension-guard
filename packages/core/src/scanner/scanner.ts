@@ -108,12 +108,9 @@ export class ExtensionGuardScanner {
       ide.extensionCount = allExtensions[i]!.length;
     }
 
-    // Scan each extension
-    const results: ScanResult[] = [];
-    for (const { ext } of extensionMap.values()) {
-      const result = await this.scanExtension(ext);
-      results.push(result);
-    }
+    // Scan extensions concurrently with configurable parallelism
+    const extensions = Array.from(extensionMap.values()).map(({ ext }) => ext);
+    const results = await this.scanExtensionsConcurrently(extensions, mergedOptions.concurrency);
 
     // Calculate summary
     const summary = this.calculateSummary(results);
@@ -132,6 +129,36 @@ export class ExtensionGuardScanner {
       summary,
       scanDurationMs: Date.now() - startTime,
     };
+  }
+
+  /**
+   * Scan multiple extensions concurrently with a configurable pool size.
+   * Uses a simple semaphore pattern to limit concurrent operations.
+   */
+  private async scanExtensionsConcurrently(
+    extensions: Awaited<ReturnType<typeof readExtensionsFromDirectory>>,
+    concurrency: number
+  ): Promise<ScanResult[]> {
+    const results: ScanResult[] = new Array(extensions.length);
+    let currentIndex = 0;
+
+    const worker = async (): Promise<void> => {
+      while (currentIndex < extensions.length) {
+        const index = currentIndex++;
+        const ext = extensions[index];
+        if (ext) {
+          results[index] = await this.scanExtension(ext);
+        }
+      }
+    };
+
+    // Start 'concurrency' number of workers
+    const workers = Array.from({ length: Math.min(concurrency, extensions.length) }, () =>
+      worker()
+    );
+    await Promise.all(workers);
+
+    return results.filter((r): r is ScanResult => r !== undefined);
   }
 
   private async scanExtension(
