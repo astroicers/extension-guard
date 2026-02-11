@@ -132,13 +132,15 @@ export function matchPatternsInFile(
       evidences.push({
         filePath,
         lineNumber,
-        lineContent: lineContent.length > maxSnippetLength
-          ? lineContent.slice(0, maxSnippetLength) + '...'
-          : lineContent,
+        lineContent:
+          lineContent.length > maxSnippetLength
+            ? lineContent.slice(0, maxSnippetLength) + '...'
+            : lineContent,
         matchedPattern: name,
-        snippet: matchedValue.length > maxSnippetLength
-          ? matchedValue.slice(0, maxSnippetLength) + '...'
-          : matchedValue,
+        snippet:
+          matchedValue.length > maxSnippetLength
+            ? matchedValue.slice(0, maxSnippetLength) + '...'
+            : matchedValue,
       });
     }
   }

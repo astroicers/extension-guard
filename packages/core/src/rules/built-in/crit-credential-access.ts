@@ -38,9 +38,14 @@ export const critCredentialAccess: DetectionRule = {
   enabled: true,
 
   detect(files: Map<string, string>, _manifest: ExtensionManifest): Evidence[] {
-    return matchPatternsInFiles(files, SENSITIVE_PATHS, {}, {
-      validate: (value, content, matchIndex) =>
-        hasPatternInContext(content, matchIndex, value.length, FILE_READ_CONTEXT, 200),
-    });
+    return matchPatternsInFiles(
+      files,
+      SENSITIVE_PATHS,
+      {},
+      {
+        validate: (value, content, matchIndex) =>
+          hasPatternInContext(content, matchIndex, value.length, FILE_READ_CONTEXT, 200),
+      }
+    );
   },
 };
