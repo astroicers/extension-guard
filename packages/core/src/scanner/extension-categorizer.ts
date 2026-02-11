@@ -334,8 +334,7 @@ function isLanguageExtension(
   contributeKeys: string[],
   contributes: Record<string, unknown>
 ): boolean {
-  const hasGrammars =
-    contributeKeys.includes('grammars') || contributeKeys.includes('languages');
+  const hasGrammars = contributeKeys.includes('grammars') || contributeKeys.includes('languages');
   if (!hasGrammars) return false;
 
   // Language extension if it contributes grammars/languages but not many commands

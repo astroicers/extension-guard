@@ -5,10 +5,7 @@ export {
   sha256,
 } from './integrity-verifier.js';
 
-export type {
-  ExtensionHash,
-  IntegrityResult,
-} from './integrity-verifier.js';
+export type { ExtensionHash, IntegrityResult } from './integrity-verifier.js';
 
 export {
   loadHashDatabase,

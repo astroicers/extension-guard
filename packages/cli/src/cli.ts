@@ -162,7 +162,7 @@ export function createCli(): Command {
         if (!rulesBySeverity[rule.severity]) {
           rulesBySeverity[rule.severity] = [];
         }
-        rulesBySeverity[rule.severity].push(rule);
+        rulesBySeverity[rule.severity]!.push(rule);
       }
 
       const severityOrder = ['critical', 'high', 'medium', 'low', 'info'];
@@ -177,7 +177,9 @@ export function createCli(): Command {
         }
       }
 
-      console.log(chalk.dim('Run `extension-guard rules --details <ruleId>` for more information.'));
+      console.log(
+        chalk.dim('Run `extension-guard rules --details <ruleId>` for more information.')
+      );
       console.log();
     });
 
@@ -268,7 +270,9 @@ export function createCli(): Command {
         console.log('Usage:');
         console.log(`  ${chalk.cyan('extension-guard scan --verify-integrity')}`);
         if (options.output) {
-          console.log(`  ${chalk.cyan(`extension-guard scan --verify-integrity --hash-db ${outputPath}`)}`);
+          console.log(
+            `  ${chalk.cyan(`extension-guard scan --verify-integrity --hash-db ${outputPath}`)}`
+          );
         }
         console.log();
       } catch (error) {
@@ -471,7 +475,9 @@ function printTableReport(report: FullScanReport): void {
   console.log();
 
   for (const ide of report.environment.ides) {
-    console.log(`${icons.folder()} ${chalk.cyan(ide.name)}: ${ide.path} (${ide.extensionCount} extensions)`);
+    console.log(
+      `${icons.folder()} ${chalk.cyan(ide.name)}: ${ide.path} (${ide.extensionCount} extensions)`
+    );
   }
 
   console.log();

@@ -83,10 +83,7 @@ export function loadHashDatabase(filePath?: string): Map<string, ExtensionHash> 
 /**
  * Save hash database to a JSON file
  */
-export function saveHashDatabase(
-  hashes: Map<string, ExtensionHash>,
-  filePath?: string
-): void {
+export function saveHashDatabase(hashes: Map<string, ExtensionHash>, filePath?: string): void {
   const dbPath = filePath || getDefaultDatabasePath();
   const dir = path.dirname(dbPath);
 

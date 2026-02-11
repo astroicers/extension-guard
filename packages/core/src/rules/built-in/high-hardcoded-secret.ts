@@ -35,8 +35,8 @@ const FALSE_POSITIVE_VALUES = [
   /^(?:bearer|basic|digest)\s/i, // Auth scheme names, not actual tokens
   /^(?:process\.env|os\.environ)/i, // Env access patterns
   /^https?:\/\//i, // URLs
-  /^\$\{/,  // Template literals
-  /^%[sd]/,  // Format strings
+  /^\$\{/, // Template literals
+  /^%[sd]/, // Format strings
 ];
 
 // File patterns to exclude (test files, examples, docs)

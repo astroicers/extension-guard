@@ -96,7 +96,11 @@ const EXPECTED_BEHAVIORS: Partial<Record<ExtensionCategory, ExpectedBehavior[]>>
     {
       // SCM extensions may spawn git processes
       ruleIds: ['EG-CRIT-002'],
-      matchedPatterns: ['child_process-exec', 'child_process-execSync', 'child_process-spawn-shell'],
+      matchedPatterns: [
+        'child_process-exec',
+        'child_process-execSync',
+        'child_process-spawn-shell',
+      ],
     },
   ],
 

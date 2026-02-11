@@ -17,15 +17,11 @@ function manifest(overrides: Partial<ExtensionManifest> = {}): ExtensionManifest
 describe('categorizeExtension', () => {
   describe('theme detection', () => {
     it('should detect theme from categories', () => {
-      expect(
-        categorizeExtension(manifest({ categories: ['Themes'] }))
-      ).toBe('theme');
+      expect(categorizeExtension(manifest({ categories: ['Themes'] }))).toBe('theme');
     });
 
     it('should detect icon theme from categories', () => {
-      expect(
-        categorizeExtension(manifest({ categories: ['Icon Themes'] }))
-      ).toBe('theme');
+      expect(categorizeExtension(manifest({ categories: ['Icon Themes'] }))).toBe('theme');
     });
 
     it('should detect theme from contributes only themes', () => {
@@ -59,7 +55,9 @@ describe('categorizeExtension', () => {
         categorizeExtension(
           manifest({
             contributes: {
-              grammars: [{ language: 'foo', scopeName: 'source.foo', path: './foo.tmLanguage.json' }],
+              grammars: [
+                { language: 'foo', scopeName: 'source.foo', path: './foo.tmLanguage.json' },
+              ],
             },
           })
         )
@@ -98,9 +96,9 @@ describe('categorizeExtension', () => {
 
   describe('AI assistant detection', () => {
     it('should detect AI assistant from Machine Learning category', () => {
-      expect(
-        categorizeExtension(manifest({ categories: ['Machine Learning'] }))
-      ).toBe('ai-assistant');
+      expect(categorizeExtension(manifest({ categories: ['Machine Learning'] }))).toBe(
+        'ai-assistant'
+      );
     });
 
     it('should detect AI assistant from keywords', () => {
@@ -110,15 +108,13 @@ describe('categorizeExtension', () => {
     });
 
     it('should detect AI assistant from displayName containing copilot', () => {
-      expect(
-        categorizeExtension(manifest({ displayName: 'My Copilot Extension' }))
-      ).toBe('ai-assistant');
+      expect(categorizeExtension(manifest({ displayName: 'My Copilot Extension' }))).toBe(
+        'ai-assistant'
+      );
     });
 
     it('should detect AI assistant from name containing assistant', () => {
-      expect(
-        categorizeExtension(manifest({ name: 'code-assistant' }))
-      ).toBe('ai-assistant');
+      expect(categorizeExtension(manifest({ name: 'code-assistant' }))).toBe('ai-assistant');
     });
 
     it('should detect Kilo Code as AI assistant', () => {
@@ -148,17 +144,13 @@ describe('categorizeExtension', () => {
 
   describe('SCM detection', () => {
     it('should detect SCM from categories', () => {
-      expect(
-        categorizeExtension(manifest({ categories: ['SCM Providers'] }))
-      ).toBe('scm');
+      expect(categorizeExtension(manifest({ categories: ['SCM Providers'] }))).toBe('scm');
     });
   });
 
   describe('debugger detection', () => {
     it('should detect debugger from categories', () => {
-      expect(
-        categorizeExtension(manifest({ categories: ['Debuggers'] }))
-      ).toBe('debugger');
+      expect(categorizeExtension(manifest({ categories: ['Debuggers'] }))).toBe('debugger');
     });
 
     it('should detect debugger from contributes.debuggers', () => {
@@ -174,21 +166,15 @@ describe('categorizeExtension', () => {
 
   describe('linter detection', () => {
     it('should detect linter from categories', () => {
-      expect(
-        categorizeExtension(manifest({ categories: ['Linters'] }))
-      ).toBe('linter');
+      expect(categorizeExtension(manifest({ categories: ['Linters'] }))).toBe('linter');
     });
 
     it('should detect formatter from categories', () => {
-      expect(
-        categorizeExtension(manifest({ categories: ['Formatters'] }))
-      ).toBe('linter');
+      expect(categorizeExtension(manifest({ categories: ['Formatters'] }))).toBe('linter');
     });
 
     it('should detect eslint from displayName', () => {
-      expect(
-        categorizeExtension(manifest({ displayName: 'ESLint' }))
-      ).toBe('linter');
+      expect(categorizeExtension(manifest({ displayName: 'ESLint' }))).toBe('linter');
     });
   });
 
@@ -539,9 +525,7 @@ describe('categorizeExtension', () => {
     });
 
     it('should return general for empty manifest', () => {
-      expect(
-        categorizeExtension(manifest())
-      ).toBe('general');
+      expect(categorizeExtension(manifest())).toBe('general');
     });
   });
 });

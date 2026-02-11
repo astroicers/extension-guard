@@ -68,9 +68,7 @@ export class ExtensionGuardScanner {
 
     // Load hash database if integrity verification is enabled
     if (this.options.verifyIntegrity) {
-      this.hashDatabase = loadHashDatabase(
-        this.options.hashDatabasePath || undefined
-      );
+      this.hashDatabase = loadHashDatabase(this.options.hashDatabasePath || undefined);
     }
   }
 
@@ -192,11 +190,12 @@ export class ExtensionGuardScanner {
           severity: 'critical',
           category: 'supply-chain',
           title: 'Extension Integrity Compromised',
-          description: `Extension files have been modified from known-good version. Modifications: ${
-            result.modifications?.manifest ? 'manifest ' : ''
-          }${result.modifications?.content ? 'content ' : ''}${
-            result.modifications?.structure ? 'structure' : ''
-          }`.trim(),
+          description:
+            `Extension files have been modified from known-good version. Modifications: ${
+              result.modifications?.manifest ? 'manifest ' : ''
+            }${result.modifications?.content ? 'content ' : ''}${
+              result.modifications?.structure ? 'structure' : ''
+            }`.trim(),
           evidence: {
             filePath: ext.installPath,
             matchedPattern: 'integrity-violation',
@@ -247,9 +246,7 @@ export class ExtensionGuardScanner {
   private calculateRiskLevel(trustScore: number, findings: ScanResult['findings']): RiskLevel {
     // Only non-downgraded critical/high findings affect risk level
     // (downgraded findings have "[Downgraded:" in description)
-    const realFindings = findings.filter(
-      (f) => !f.description?.includes('[Downgraded:')
-    );
+    const realFindings = findings.filter((f) => !f.description?.includes('[Downgraded:'));
 
     // If any real critical finding, always critical
     if (realFindings.some((f) => f.severity === 'critical')) {

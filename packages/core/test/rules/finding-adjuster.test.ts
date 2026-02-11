@@ -223,7 +223,10 @@ describe('adjustFindings', () => {
         makeFinding({
           ruleId: 'EG-CRIT-002',
           severity: 'critical',
-          evidence: { filePath: 'src/pythonRunner.js', matchedPattern: 'child_process-spawn-shell' },
+          evidence: {
+            filePath: 'src/pythonRunner.js',
+            matchedPattern: 'child_process-spawn-shell',
+          },
         }),
       ];
 
