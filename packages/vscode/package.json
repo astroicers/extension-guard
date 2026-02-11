@@ -46,6 +46,10 @@
       {
         "command": "extension-guard.scanExtension",
         "title": "Extension Guard: Scan This Extension"
+      },
+      {
+        "command": "extension-guard.showReport",
+        "title": "Extension Guard: Show Security Report"
       }
     ]
   },

@@ -3,6 +3,7 @@ import { getScannerService } from './scanner-service';
 import { getTreeProvider } from './sidebar/provider';
 import { getStatusBarManager } from './status-bar';
 import { showScanComplete, showMultipleRisksWarning } from './notifications';
+import { showReportPanel } from './webview/report-panel';
 
 export function registerCommands(context: vscode.ExtensionContext): void {
   // Scan all extensions command
@@ -65,5 +66,32 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     }
   );
 
-  context.subscriptions.push(scanCommand, scanExtensionCommand);
+  // Show full report in webview panel
+  const showReportCommand = vscode.commands.registerCommand(
+    'extension-guard.showReport',
+    async () => {
+      const scanner = getScannerService();
+      const statusBar = getStatusBarManager();
+      const treeProvider = getTreeProvider();
+
+      // Perform scan if no results yet
+      let report = scanner.getLastReport();
+      if (!report) {
+        statusBar.setScanning(true);
+        try {
+          report = await scanner.scanAll();
+          treeProvider.refresh();
+          statusBar.update();
+        } finally {
+          statusBar.setScanning(false);
+        }
+      }
+
+      if (report) {
+        showReportPanel(context, report);
+      }
+    }
+  );
+
+  context.subscriptions.push(scanCommand, scanExtensionCommand, showReportCommand);
 }
