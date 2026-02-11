@@ -6,6 +6,7 @@ import type { DetectedIDE } from '../types/index.js';
 export const IDE_PATHS: Record<string, string[]> = {
   'VS Code': ['~/.vscode/extensions'],
   'VS Code Insiders': ['~/.vscode-insiders/extensions'],
+  'VS Code Server': ['~/.vscode-server/extensions'],
   Cursor: ['~/.cursor/extensions'],
   Windsurf: ['~/.windsurf/extensions'],
   Trae: ['~/.trae/extensions'],

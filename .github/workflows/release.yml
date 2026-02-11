@@ -18,7 +18,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -36,14 +36,96 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-      - name: Publish to npm
-        run: pnpm -r publish --access public --no-git-checks
+      - name: Publish @aspect-guard/core to npm
+        run: pnpm --filter @aspect-guard/core publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true
+
+      - name: Publish extension-guard CLI to npm
+        run: pnpm --filter extension-guard publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true
+
+      - name: Package VSCode extension
+        run: pnpm --filter extension-guard-vscode package
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           generate_release_notes: true
+          files: |
+            packages/vscode/extension-guard-vscode-${{ steps.version.outputs.VERSION }}.vsix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Optional: Publish to VS Code Marketplace
+  publish-vscode:
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ vars.PUBLISH_VSCODE == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to VS Code Marketplace
+        run: |
+          cd packages/vscode
+          pnpm dlx @vscode/vsce publish --no-dependencies
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+  # Optional: Publish to Open VSX Registry
+  publish-openvsx:
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ vars.PUBLISH_OPENVSX == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to Open VSX
+        run: |
+          cd packages/vscode
+          pnpm dlx ovsx publish --no-dependencies
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}

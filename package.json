@@ -13,7 +13,11 @@
     "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r clean",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "release": "./scripts/release.sh",
+    "release:patch": "./scripts/release.sh patch",
+    "release:minor": "./scripts/release.sh minor",
+    "release:major": "./scripts/release.sh major"
   },
   "devDependencies": {
     "prettier": "^3.2.0",
