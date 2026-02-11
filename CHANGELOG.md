@@ -1,3 +1,10 @@
+## [0.5.6](https://github.com/astroicers/extension-guard/compare/v0.5.5...v0.5.6) (2026-02-11)
+
+
+### Bug Fixes
+
+* marketplace publish with correct PAT ([ea29b01](https://github.com/astroicers/extension-guard/commit/ea29b0190681e4839eeeb90a5ed6cd10c35878fa))
+
 ## [0.5.5](https://github.com/astroicers/extension-guard/compare/v0.5.4...v0.5.5) (2026-02-11)
 
 

@@ -1,7 +1,7 @@
 // Extension Guard Core - Scanning Engine
 // @aspect-guard/core
 
-export const VERSION = '0.5.5';
+export const VERSION = '0.5.6';
 
 // Types
 export * from './types/index.js';
