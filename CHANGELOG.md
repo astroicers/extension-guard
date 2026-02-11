@@ -1,3 +1,10 @@
+## [0.5.5](https://github.com/astroicers/extension-guard/compare/v0.5.4...v0.5.5) (2026-02-11)
+
+
+### Bug Fixes
+
+* publish with new VSCE_PAT token ([10a24a0](https://github.com/astroicers/extension-guard/commit/10a24a090e2f289d7b5e6fa0d7cbd1e0a2ea216c))
+
 ## [0.5.4](https://github.com/astroicers/extension-guard/compare/v0.5.3...v0.5.4) (2026-02-11)
 
 
