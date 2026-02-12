@@ -480,6 +480,16 @@ function printTableReport(report: FullScanReport): void {
     );
   }
 
+  // Show skipped extensions if any
+  if (report.skippedExtensions && report.skippedExtensions.length > 0) {
+    console.log();
+    console.log(chalk.dim(`Skipped: ${report.skippedExtensions.length} extension(s)`));
+    for (const skipped of report.skippedExtensions) {
+      const reason = skipped.reason === 'self-extension' ? '(self)' : `(${skipped.reason})`;
+      console.log(chalk.dim(`  - ${skipped.extensionId} ${reason}`));
+    }
+  }
+
   console.log();
   console.log(chalk.dim('━'.repeat(60)));
   console.log();

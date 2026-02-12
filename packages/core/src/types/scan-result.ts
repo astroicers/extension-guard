@@ -44,6 +44,14 @@ export interface DetectedIDE {
   extensionCount: number;
 }
 
+export type SkipReason = 'self-extension' | 'policy-allowlist';
+
+export interface SkippedExtension {
+  extensionId: string;
+  reason: SkipReason;
+  displayName?: string;
+}
+
 export interface FullScanReport {
   scanId: string;
   version: string;
@@ -57,6 +65,8 @@ export interface FullScanReport {
   results: ScanResult[];
   summary: ScanSummary;
   scanDurationMs: number;
+  /** Extensions that were skipped during scanning */
+  skippedExtensions?: SkippedExtension[];
 }
 
 export interface PolicyViolation {

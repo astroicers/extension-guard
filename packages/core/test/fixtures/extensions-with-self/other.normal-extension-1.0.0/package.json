@@ -1,0 +1,12 @@
+{
+  "name": "normal-extension",
+  "displayName": "Normal Extension",
+  "description": "A normal extension for testing",
+  "version": "1.0.0",
+  "publisher": "other",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./extension.js"
+}

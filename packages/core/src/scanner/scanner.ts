@@ -11,7 +11,9 @@ import type {
   DetectedIDE,
   ExtensionManifest,
   IntegrityInfo,
+  SkippedExtension,
 } from '../types/index.js';
+import { isSelfExtension } from '../data/self-extensions.js';
 import { detectIDEPaths } from './ide-detector.js';
 import { readExtensionsFromDirectory } from './extension-reader.js';
 import { collectFiles } from './file-collector.js';
@@ -42,6 +44,7 @@ const DEFAULT_OPTIONS: Required<ScanOptions> = {
   timeout: 30000,
   verifyIntegrity: false,
   hashDatabasePath: '',
+  includeSelfExtensions: false,
 };
 
 const SEVERITY_PENALTY: Record<Severity, number> = {
@@ -97,9 +100,26 @@ export class ExtensionGuardScanner {
       string,
       { ide: DetectedIDE; ext: Awaited<ReturnType<typeof readExtensionsFromDirectory>>[number] }
     >();
+
+    // Track skipped extensions
+    const skippedExtensions: SkippedExtension[] = [];
+
     for (let i = 0; i < ides.length; i++) {
       const ide = ides[i]!;
       for (const ext of allExtensions[i]!) {
+        // Skip self-extensions unless explicitly included
+        if (!mergedOptions.includeSelfExtensions && isSelfExtension(ext.id)) {
+          // Only add once even if found in multiple IDEs
+          if (!skippedExtensions.some((s) => s.extensionId === ext.id)) {
+            skippedExtensions.push({
+              extensionId: ext.id,
+              displayName: ext.displayName,
+              reason: 'self-extension',
+            });
+          }
+          continue;
+        }
+
         if (!extensionMap.has(ext.id)) {
           extensionMap.set(ext.id, { ide, ext });
         }
@@ -128,6 +148,7 @@ export class ExtensionGuardScanner {
       results,
       summary,
       scanDurationMs: Date.now() - startTime,
+      skippedExtensions: skippedExtensions.length > 0 ? skippedExtensions : undefined,
     };
   }
 

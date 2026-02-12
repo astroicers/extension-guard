@@ -1,6 +1,6 @@
 {
   "name": "@aspect-guard/core",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "Core scanning engine for Extension Guard",
   "type": "module",
   "main": "./dist/index.js",

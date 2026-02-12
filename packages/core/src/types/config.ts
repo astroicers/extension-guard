@@ -12,6 +12,8 @@ export interface ScanOptions {
   verifyIntegrity?: boolean;
   /** Path to custom hash database */
   hashDatabasePath?: string;
+  /** Include Extension Guard's own extensions in the scan (default: false) */
+  includeSelfExtensions?: boolean;
 }
 
 export interface InspectOptions {

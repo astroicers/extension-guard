@@ -1,7 +1,7 @@
 // Extension Guard Core - Scanning Engine
 // @aspect-guard/core
 
-export const VERSION = '0.5.6';
+export const VERSION = '0.5.7';
 
 // Types
 export * from './types/index.js';
@@ -48,6 +48,10 @@ export {
   isPopular,
 } from './data/popular-extensions.js';
 export type { PopularExtension } from './data/popular-extensions.js';
+
+// Self Extensions (for self-exclusion)
+export { SELF_EXTENSION_IDS, isSelfExtension } from './data/self-extensions.js';
+export type { SelfExtensionId } from './data/self-extensions.js';
 
 // Bundle Detection
 export {

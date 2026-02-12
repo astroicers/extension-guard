@@ -1,3 +1,14 @@
+## [0.5.7](https://github.com/astroicers/extension-guard/compare/v0.5.6...v0.5.7) (2026-02-12)
+
+
+### Features
+
+* **scanner:** auto-exclude extension-guard-vscode from scanning itself ([#self-exclusion](https://github.com/astroicers/extension-guard/issues/self-exclusion))
+  - Add `SELF_EXTENSION_IDS` constant and `isSelfExtension()` helper
+  - Add `includeSelfExtensions` option in `ScanOptions` (default: false)
+  - Add `skippedExtensions` field in `FullScanReport`
+  - Display skipped extensions in CLI output
+
 ## [0.5.6](https://github.com/astroicers/extension-guard/compare/v0.5.5...v0.5.6) (2026-02-11)
 
 
