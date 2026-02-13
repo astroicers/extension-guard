@@ -1,0 +1,12 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圓角矩形 - VS Code 風格 -->
+  <rect x="16" y="16" width="224" height="224" rx="32" fill="#0078D4"/>
+
+  <!-- 盾牌 - 線條風格，白色 -->
+  <path d="M128 56L64 80V128C64 160.8 89.6 190.4 128 200C166.4 190.4 192 160.8 192 128V80L128 56Z"
+        stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- 打勾 - 線條風格，白色 -->
+  <path d="M96 128L116 148L160 104"
+        stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
