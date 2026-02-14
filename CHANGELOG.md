@@ -1,3 +1,10 @@
+# [0.7.0](https://github.com/astroicers/extension-guard/compare/v0.6.0...v0.7.0) (2026-02-14)
+
+
+### Features
+
+* **vscode:** add export, search/filter, and finding suppression features ([756e72c](https://github.com/astroicers/extension-guard/commit/756e72c9fd5e00e45938f71eb49e74c549a63c5d))
+
 # [0.6.0](https://github.com/astroicers/extension-guard/compare/v0.5.7...v0.6.0) (2026-02-14)
 
 
