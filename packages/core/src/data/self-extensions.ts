@@ -5,9 +5,7 @@
  * false positives from the scanner analyzing itself. Self-exclusion
  * can be disabled via ScanOptions.includeSelfExtensions for testing.
  */
-export const SELF_EXTENSION_IDS = [
-  'aspect-guard.extension-guard-vscode',
-] as const;
+export const SELF_EXTENSION_IDS = ['aspect-guard.extension-guard-vscode'] as const;
 
 /**
  * Type for self-extension IDs.

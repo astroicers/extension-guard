@@ -68,11 +68,7 @@ export async function removeSuppression(
   await saveSuppressions(filtered);
 }
 
-export function isSuppressed(
-  extensionId: string,
-  ruleId: string,
-  findingId?: string
-): boolean {
+export function isSuppressed(extensionId: string, ruleId: string, findingId?: string): boolean {
   const suppressions = getSuppressions();
 
   return suppressions.some(

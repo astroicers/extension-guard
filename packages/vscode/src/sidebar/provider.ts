@@ -72,9 +72,7 @@ export class ExtensionGuardTreeProvider implements vscode.TreeDataProvider<TreeI
   }
 
   private filterResults(results: ScanResult[]): ScanResult[] {
-    return results.filter(
-      (r) => this.matchesSearch(r) && this.matchesRiskFilter(r)
-    );
+    return results.filter((r) => this.matchesSearch(r) && this.matchesRiskFilter(r));
   }
 
   getTreeItem(element: TreeItemType): vscode.TreeItem {
@@ -108,7 +106,9 @@ export class ExtensionGuardTreeProvider implements vscode.TreeDataProvider<TreeI
 
     // Show filter indicator if active
     const hasActiveFilter = this.searchQuery || this.riskFilter !== 'all';
-    const filterSuffix = hasActiveFilter ? ` (filtered: ${filteredResults.length}/${allResults.length})` : '';
+    const filterSuffix = hasActiveFilter
+      ? ` (filtered: ${filteredResults.length}/${allResults.length})`
+      : '';
 
     // Overview
     const trustScore = scanner.getOverallTrustScore();
@@ -125,9 +125,7 @@ export class ExtensionGuardTreeProvider implements vscode.TreeDataProvider<TreeI
     items.push(new CategoryItem('medium-risk', mediumRisk));
 
     // Safe
-    const safe = filteredResults.filter(
-      (r) => r.riskLevel === 'safe' || r.riskLevel === 'low'
-    );
+    const safe = filteredResults.filter((r) => r.riskLevel === 'safe' || r.riskLevel === 'low');
     items.push(new CategoryItem('safe', safe));
 
     // Scan Now button

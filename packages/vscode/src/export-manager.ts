@@ -3,10 +3,7 @@ import type { FullScanReport, ScanResult, Finding } from '@aspect-guard/core';
 
 export type ExportFormat = 'json' | 'csv' | 'markdown';
 
-export async function exportReport(
-  report: FullScanReport,
-  format: ExportFormat
-): Promise<void> {
+export async function exportReport(report: FullScanReport, format: ExportFormat): Promise<void> {
   let content: string;
   let defaultFileName: string;
   let filters: Record<string, string[]>;
@@ -96,7 +93,13 @@ function escapeCsvField(field: string): string {
   return field;
 }
 
-function countSeverities(findings: Finding[]): { critical: number; high: number; medium: number; low: number; info: number } {
+function countSeverities(findings: Finding[]): {
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+  info: number;
+} {
   const counts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
   for (const finding of findings) {
     if (finding.severity in counts) {
@@ -214,7 +217,9 @@ function renderExtensionMarkdown(result: ScanResult): string[] {
       const location = finding.evidence.filePath
         ? ` (\`${finding.evidence.filePath}${finding.evidence.lineNumber ? ':' + finding.evidence.lineNumber : ''}\`)`
         : '';
-      lines.push(`- **[${finding.severity.toUpperCase()}]** ${finding.ruleId}: ${finding.title}${location}`);
+      lines.push(
+        `- **[${finding.severity.toUpperCase()}]** ${finding.ruleId}: ${finding.title}${location}`
+      );
     }
     lines.push('');
   }

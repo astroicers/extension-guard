@@ -107,7 +107,10 @@ async function openFileAtLine(filePath: string, lineNumber?: number): Promise<vo
     if (lineNumber && lineNumber > 0) {
       const position = new vscode.Position(lineNumber - 1, 0);
       editor.selection = new vscode.Selection(position, position);
-      editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+      editor.revealRange(
+        new vscode.Range(position, position),
+        vscode.TextEditorRevealType.InCenter
+      );
     }
   } catch {
     vscode.window.showWarningMessage(`Cannot open file: ${filePath}`);
@@ -160,7 +163,8 @@ function escapeHtml(text: string): string {
 
 function getWebviewContent(result: ScanResult): string {
   const riskLevelLabel = result.riskLevel.toUpperCase();
-  const riskLevelClass = result.riskLevel === 'safe' || result.riskLevel === 'low' ? 'safe' : result.riskLevel;
+  const riskLevelClass =
+    result.riskLevel === 'safe' || result.riskLevel === 'low' ? 'safe' : result.riskLevel;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -667,9 +671,10 @@ function renderFindings(result: ScanResult): string {
 
 function renderFinding(finding: Finding, extensionId: string, installPath: string): string {
   const evidence = finding.evidence;
-  const fullPath = installPath && evidence.filePath
-    ? `${installPath}/${evidence.filePath}`.replace(/\/+/g, '/')
-    : evidence.filePath;
+  const fullPath =
+    installPath && evidence.filePath
+      ? `${installPath}/${evidence.filePath}`.replace(/\/+/g, '/')
+      : evidence.filePath;
   const suppressed = isSuppressed(extensionId, finding.ruleId, finding.id);
 
   return `
@@ -724,7 +729,12 @@ function renderFinding(finding: Finding, extensionId: string, installPath: strin
   `;
 }
 
-function renderCodeSnippet(evidence: { lineNumber?: number; lineContent?: string; contextBefore?: string[]; contextAfter?: string[] }): string {
+function renderCodeSnippet(evidence: {
+  lineNumber?: number;
+  lineContent?: string;
+  contextBefore?: string[];
+  contextAfter?: string[];
+}): string {
   if (!evidence.lineContent && !evidence.contextBefore?.length && !evidence.contextAfter?.length) {
     return '';
   }
