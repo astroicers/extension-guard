@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/astroicers/extension-guard/compare/v0.5.7...v0.6.0) (2026-02-14)
+
+
+### Features
+
+* **vscode:** add extension detail panel for viewing security findings ([84ff980](https://github.com/astroicers/extension-guard/commit/84ff98092097fd2c41e60adc495d7ea6bff16df4))
+
 ## [0.5.8](https://github.com/astroicers/extension-guard/compare/v0.5.7...v0.5.8) (2026-02-14)
 
 
