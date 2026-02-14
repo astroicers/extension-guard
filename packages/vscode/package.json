@@ -50,6 +50,10 @@
       {
         "command": "extension-guard.showReport",
         "title": "Extension Guard: Show Security Report"
+      },
+      {
+        "command": "extension-guard.showExtensionDetail",
+        "title": "Extension Guard: Show Extension Details"
       }
     ]
   },

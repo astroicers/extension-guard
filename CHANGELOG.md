@@ -1,3 +1,17 @@
+## [0.5.8](https://github.com/astroicers/extension-guard/compare/v0.5.7...v0.5.8) (2026-02-14)
+
+
+### Features
+
+* **vscode:** add extension detail panel with security findings view ([extension-detail-panel](https://github.com/astroicers/extension-guard/commit/extension-detail-panel))
+  - Click extension in sidebar to view detailed security information
+  - Display trust score, risk level, publisher, license, categories
+  - Show all security findings with severity, rule ID, description
+  - Code snippets with context lines and line highlighting
+  - Clickable file paths to navigate directly to source code
+  - Remediation guidance and MITRE ATT&CK references
+  - Actions: Disable extension, View in Extensions, Re-scan
+
 ## [0.5.7](https://github.com/astroicers/extension-guard/compare/v0.5.6...v0.5.7) (2026-02-12)
 
 

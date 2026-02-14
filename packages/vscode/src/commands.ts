@@ -4,6 +4,8 @@ import { getTreeProvider } from './sidebar/provider';
 import { getStatusBarManager } from './status-bar';
 import { showScanComplete, showMultipleRisksWarning } from './notifications';
 import { showReportPanel } from './webview/report-panel';
+import { showExtensionDetailPanel } from './webview/extension-detail-panel';
+import type { ScanResult } from '@aspect-guard/core';
 
 export function registerCommands(context: vscode.ExtensionContext): void {
   // Scan all extensions command
@@ -93,5 +95,17 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     }
   );
 
-  context.subscriptions.push(scanCommand, scanExtensionCommand, showReportCommand);
+  // Show extension detail panel
+  const showExtensionDetailCommand = vscode.commands.registerCommand(
+    'extension-guard.showExtensionDetail',
+    async (result: ScanResult) => {
+      if (!result) {
+        vscode.window.showWarningMessage('No extension data provided');
+        return;
+      }
+      showExtensionDetailPanel(context, result);
+    }
+  );
+
+  context.subscriptions.push(scanCommand, scanExtensionCommand, showReportCommand, showExtensionDetailCommand);
 }

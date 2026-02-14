@@ -53,8 +53,15 @@ export class ExtensionItem extends vscode.TreeItem {
           : 'pass';
     this.iconPath = new vscode.ThemeIcon(iconName);
 
-    this.tooltip = `${result.extensionId}\nVersion: ${result.version}\nTrust Score: ${result.trustScore}/100\nRisk Level: ${result.riskLevel}`;
+    this.tooltip = `${result.extensionId}\nVersion: ${result.version}\nTrust Score: ${result.trustScore}/100\nRisk Level: ${result.riskLevel}\n\nClick to view details`;
     this.contextValue = 'extension';
+
+    // Click to show detail panel
+    this.command = {
+      command: 'extension-guard.showExtensionDetail',
+      title: 'Show Extension Details',
+      arguments: [this.result],
+    };
   }
 }
 
