@@ -1,12 +1,17 @@
 import * as vscode from 'vscode';
 import type { FullScanReport, ScanResult } from '@aspect-guard/core';
+import { exportReport, ExportFormat } from '../export-manager';
 
 let currentPanel: vscode.WebviewPanel | undefined;
+let currentReport: FullScanReport | undefined;
 
 export function showReportPanel(context: vscode.ExtensionContext, report: FullScanReport): void {
   const column = vscode.window.activeTextEditor
     ? vscode.window.activeTextEditor.viewColumn
     : undefined;
+
+  // Store current report for export
+  currentReport = report;
 
   // If panel exists, reveal it
   if (currentPanel) {
@@ -32,6 +37,7 @@ export function showReportPanel(context: vscode.ExtensionContext, report: FullSc
   currentPanel.onDidDispose(
     () => {
       currentPanel = undefined;
+      currentReport = undefined;
     },
     null,
     context.subscriptions
@@ -53,6 +59,11 @@ export function showReportPanel(context: vscode.ExtensionContext, report: FullSc
             'workbench.extensions.search',
             `@id:${message.extensionId}`
           );
+          break;
+        case 'exportReport':
+          if (currentReport) {
+            await exportReport(currentReport, message.format as ExportFormat);
+          }
           break;
       }
     },
@@ -331,6 +342,107 @@ function getWebviewContent(report: FullScanReport): string {
       margin-top: 24px;
       text-align: center;
     }
+
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-left {
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .footer-right {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--vscode-textLink-foreground);
+      text-decoration: none;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .github-link:hover {
+      background: var(--vscode-toolbar-hoverBackground);
+      text-decoration: underline;
+    }
+
+    .export-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .export-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .export-btn:hover {
+      background: var(--vscode-button-secondaryHoverBackground);
+    }
+
+    .export-menu {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      right: 0;
+      margin-bottom: 4px;
+      background: var(--vscode-menu-background);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 100;
+      min-width: 150px;
+    }
+
+    .export-menu.show {
+      display: block;
+    }
+
+    .export-menu-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .export-menu-item:hover {
+      background: var(--vscode-list-hoverBackground);
+    }
+
+    .export-menu-item:first-child {
+      border-radius: 4px 4px 0 0;
+    }
+
+    .export-menu-item:last-child {
+      border-radius: 0 0 4px 4px;
+    }
   </style>
 </head>
 <body>
@@ -371,8 +483,25 @@ function getWebviewContent(report: FullScanReport): string {
   ${renderRiskSection('🟡 Medium Risk', 'medium', medium)}
   ${renderSafeSection(safe)}
 
-  <div class="timestamp">
-    Scanned at ${new Date(report.timestamp).toLocaleString()} • Completed in ${(report.scanDurationMs / 1000).toFixed(1)}s
+  <div class="footer">
+    <div class="footer-left">
+      Scanned at ${new Date(report.timestamp).toLocaleString()} • Completed in ${(report.scanDurationMs / 1000).toFixed(1)}s
+    </div>
+    <div class="footer-right">
+      <div class="export-dropdown">
+        <button class="export-btn" onclick="toggleExportMenu()">
+          Export ▾
+        </button>
+        <div class="export-menu" id="exportMenu">
+          <div class="export-menu-item" onclick="exportReport('json')">📄 Export as JSON</div>
+          <div class="export-menu-item" onclick="exportReport('csv')">📊 Export as CSV</div>
+          <div class="export-menu-item" onclick="exportReport('markdown')">📝 Export as Markdown</div>
+        </div>
+      </div>
+      <a class="github-link" href="https://github.com/astroicers/extension-guard" target="_blank">
+        ⭐ Star on GitHub
+      </a>
+    </div>
   </div>
 
   <script>
@@ -385,6 +514,23 @@ function getWebviewContent(report: FullScanReport): string {
     function openExtension(extensionId) {
       vscode.postMessage({ command: 'openExtension', extensionId });
     }
+
+    function toggleExportMenu() {
+      const menu = document.getElementById('exportMenu');
+      menu.classList.toggle('show');
+    }
+
+    function exportReport(format) {
+      vscode.postMessage({ command: 'exportReport', format });
+      document.getElementById('exportMenu').classList.remove('show');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.export-dropdown')) {
+        document.getElementById('exportMenu').classList.remove('show');
+      }
+    });
   </script>
 </body>
 </html>`;

@@ -3,8 +3,10 @@ import type { ScanResult, Finding } from '@aspect-guard/core';
 import { getScannerService } from '../scanner-service';
 import { getTreeProvider } from '../sidebar/provider';
 import { getStatusBarManager } from '../status-bar';
+import { addSuppression, removeSuppression, isSuppressed } from '../suppression-manager';
 
 let currentPanel: vscode.WebviewPanel | undefined;
+let currentResult: ScanResult | undefined;
 
 export function showExtensionDetailPanel(
   context: vscode.ExtensionContext,
@@ -13,6 +15,9 @@ export function showExtensionDetailPanel(
   const column = vscode.window.activeTextEditor
     ? vscode.window.activeTextEditor.viewColumn
     : undefined;
+
+  // Store current result
+  currentResult = result;
 
   // If panel exists, update content
   if (currentPanel) {
@@ -39,6 +44,7 @@ export function showExtensionDetailPanel(
   currentPanel.onDidDispose(
     () => {
       currentPanel = undefined;
+      currentResult = undefined;
     },
     null,
     context.subscriptions
@@ -66,6 +72,24 @@ export function showExtensionDetailPanel(
           break;
         case 'rescan':
           await rescanExtension(context, message.extensionId);
+          break;
+        case 'suppressFinding':
+          await addSuppression(message.extensionId, message.ruleId, message.findingId);
+          vscode.window.showInformationMessage(`Finding suppressed: ${message.ruleId}`);
+          getTreeProvider().refresh();
+          // Refresh panel to show updated state
+          if (currentResult && currentPanel) {
+            currentPanel.webview.html = getWebviewContent(currentResult);
+          }
+          break;
+        case 'unsuppressFinding':
+          await removeSuppression(message.extensionId, message.ruleId, message.findingId);
+          vscode.window.showInformationMessage(`Finding restored: ${message.ruleId}`);
+          getTreeProvider().refresh();
+          // Refresh panel to show updated state
+          if (currentResult && currentPanel) {
+            currentPanel.webview.html = getWebviewContent(currentResult);
+          }
           break;
       }
     },
@@ -487,6 +511,44 @@ function getWebviewContent(result: ScanResult): string {
       font-size: 48px;
       margin-bottom: 12px;
     }
+
+    .finding-card.suppressed {
+      opacity: 0.5;
+      border-left-color: var(--vscode-descriptionForeground);
+    }
+
+    .finding-card.suppressed .finding-title {
+      text-decoration: line-through;
+    }
+
+    .suppressed-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--vscode-descriptionForeground);
+      color: var(--bg-color);
+      border-radius: 3px;
+      margin-left: auto;
+    }
+
+    .finding-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 11px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-color);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-small:hover {
+      background: var(--vscode-toolbar-hoverBackground);
+    }
   </style>
 </head>
 <body>
@@ -563,33 +625,55 @@ function getWebviewContent(result: ScanResult): string {
     function rescan(extensionId) {
       vscode.postMessage({ command: 'rescan', extensionId });
     }
+
+    function suppressFinding(extensionId, ruleId, findingId) {
+      vscode.postMessage({ command: 'suppressFinding', extensionId, ruleId, findingId });
+    }
+
+    function unsuppressFinding(extensionId, ruleId, findingId) {
+      vscode.postMessage({ command: 'unsuppressFinding', extensionId, ruleId, findingId });
+    }
   </script>
 </body>
 </html>`;
 }
 
 function renderFindings(result: ScanResult): string {
-  // Sort findings by severity
+  // Sort findings by severity, then by suppression status
   const severityOrder = ['critical', 'high', 'medium', 'low', 'info'];
-  const sorted = [...result.findings].sort(
-    (a, b) => severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity)
-  );
+  const sorted = [...result.findings].sort((a, b) => {
+    const aSuppressed = isSuppressed(result.extensionId, a.ruleId, a.id);
+    const bSuppressed = isSuppressed(result.extensionId, b.ruleId, b.id);
+
+    // Non-suppressed first
+    if (aSuppressed !== bSuppressed) {
+      return aSuppressed ? 1 : -1;
+    }
+
+    return severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity);
+  });
+
+  const suppressedCount = result.findings.filter((f) =>
+    isSuppressed(result.extensionId, f.ruleId, f.id)
+  ).length;
 
   return `
+    ${suppressedCount > 0 ? `<div style="font-size: 12px; color: var(--vscode-descriptionForeground); margin-bottom: 12px;">${suppressedCount} finding(s) suppressed</div>` : ''}
     <div class="findings-list">
-      ${sorted.map((f) => renderFinding(f, result.metadata.installPath)).join('')}
+      ${sorted.map((f) => renderFinding(f, result.extensionId, result.metadata.installPath)).join('')}
     </div>
   `;
 }
 
-function renderFinding(finding: Finding, installPath: string): string {
+function renderFinding(finding: Finding, extensionId: string, installPath: string): string {
   const evidence = finding.evidence;
   const fullPath = installPath && evidence.filePath
     ? `${installPath}/${evidence.filePath}`.replace(/\/+/g, '/')
     : evidence.filePath;
+  const suppressed = isSuppressed(extensionId, finding.ruleId, finding.id);
 
   return `
-    <div class="finding-card ${finding.severity}">
+    <div class="finding-card ${finding.severity}${suppressed ? ' suppressed' : ''}">
       <div class="finding-header">
         <span class="severity-badge ${finding.severity}">${finding.severity}</span>
         <span class="rule-id">${escapeHtml(finding.ruleId)}</span>
@@ -599,6 +683,7 @@ function renderFinding(finding: Finding, installPath: string): string {
             ? `<a class="mitre-link" href="https://attack.mitre.org/techniques/${finding.mitreAttackId}/" target="_blank">${escapeHtml(finding.mitreAttackId)}</a>`
             : ''
         }
+        ${suppressed ? '<span class="suppressed-badge">Suppressed</span>' : ''}
       </div>
       <div class="finding-title">${escapeHtml(finding.title)}</div>
       <div class="finding-description">${escapeHtml(finding.description)}</div>
@@ -627,6 +712,14 @@ function renderFinding(finding: Finding, installPath: string): string {
              </div>`
           : ''
       }
+
+      <div class="finding-actions">
+        ${
+          suppressed
+            ? `<button class="btn-small" onclick="unsuppressFinding('${escapeHtml(extensionId)}', '${escapeHtml(finding.ruleId)}', '${escapeHtml(finding.id)}')">Restore Finding</button>`
+            : `<button class="btn-small" onclick="suppressFinding('${escapeHtml(extensionId)}', '${escapeHtml(finding.ruleId)}', '${escapeHtml(finding.id)}')">Suppress (Ignore)</button>`
+        }
+      </div>
     </div>
   `;
 }

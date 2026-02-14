@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getScannerService } from './scanner-service';
-import { getTreeProvider } from './sidebar/provider';
+import { getTreeProvider, RiskFilter } from './sidebar/provider';
 import { getStatusBarManager } from './status-bar';
 import { showScanComplete, showMultipleRisksWarning } from './notifications';
 import { showReportPanel } from './webview/report-panel';
@@ -107,5 +107,66 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     }
   );
 
-  context.subscriptions.push(scanCommand, scanExtensionCommand, showReportCommand, showExtensionDetailCommand);
+  // Search extensions
+  const searchCommand = vscode.commands.registerCommand(
+    'extension-guard.search',
+    async () => {
+      const treeProvider = getTreeProvider();
+      const currentQuery = treeProvider.getSearchQuery();
+
+      const query = await vscode.window.showInputBox({
+        prompt: 'Search extensions by name, ID, or publisher',
+        value: currentQuery,
+        placeHolder: 'e.g., microsoft, eslint, prettier',
+      });
+
+      if (query !== undefined) {
+        treeProvider.setSearchQuery(query);
+      }
+    }
+  );
+
+  // Filter by risk level
+  const filterCommand = vscode.commands.registerCommand(
+    'extension-guard.filter',
+    async () => {
+      const treeProvider = getTreeProvider();
+      const currentFilter = treeProvider.getRiskFilter();
+
+      const options: { label: string; value: RiskFilter; picked: boolean }[] = [
+        { label: '$(list-flat) All Extensions', value: 'all', picked: currentFilter === 'all' },
+        { label: '$(error) Critical & High Risk', value: 'high', picked: currentFilter === 'high' },
+        { label: '$(warning) Medium Risk', value: 'medium', picked: currentFilter === 'medium' },
+        { label: '$(pass) Safe', value: 'safe', picked: currentFilter === 'safe' },
+      ];
+
+      const selected = await vscode.window.showQuickPick(options, {
+        placeHolder: 'Filter extensions by risk level',
+      });
+
+      if (selected) {
+        treeProvider.setRiskFilter(selected.value);
+      }
+    }
+  );
+
+  // Clear all filters
+  const clearFiltersCommand = vscode.commands.registerCommand(
+    'extension-guard.clearFilters',
+    () => {
+      const treeProvider = getTreeProvider();
+      treeProvider.clearFilters();
+      vscode.window.showInformationMessage('Extension Guard: Filters cleared');
+    }
+  );
+
+  context.subscriptions.push(
+    scanCommand,
+    scanExtensionCommand,
+    showReportCommand,
+    showExtensionDetailCommand,
+    searchCommand,
+    filterCommand,
+    clearFiltersCommand
+  );
 }

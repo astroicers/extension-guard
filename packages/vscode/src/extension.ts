@@ -3,10 +3,14 @@ import { registerCommands } from './commands';
 import { getExtensionWatcher, disposeExtensionWatcher } from './extension-watcher';
 import { getTreeProvider } from './sidebar/provider';
 import { getStatusBarManager, disposeStatusBarManager } from './status-bar';
-import { showNewExtensionScanned } from './notifications';
+import { showNewExtensionScanned, showWelcomeMessage } from './notifications';
+import { initSuppressionManager } from './suppression-manager';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   console.log('Extension Guard is now active!');
+
+  // Initialize suppression manager
+  initSuppressionManager(context);
 
   // Register tree view
   const treeProvider = getTreeProvider();
@@ -22,6 +26,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // Register commands
   registerCommands(context);
+
+  // Show welcome message on first activation
+  showWelcomeMessage(context);
 
   // Set up extension watcher
   const watcher = getExtensionWatcher();

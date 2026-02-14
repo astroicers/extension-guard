@@ -41,7 +41,8 @@
     "commands": [
       {
         "command": "extension-guard.scan",
-        "title": "Extension Guard: Scan All Extensions"
+        "title": "Extension Guard: Scan All Extensions",
+        "icon": "$(refresh)"
       },
       {
         "command": "extension-guard.scanExtension",
@@ -49,13 +50,53 @@
       },
       {
         "command": "extension-guard.showReport",
-        "title": "Extension Guard: Show Security Report"
+        "title": "Extension Guard: Show Security Report",
+        "icon": "$(file)"
       },
       {
         "command": "extension-guard.showExtensionDetail",
         "title": "Extension Guard: Show Extension Details"
+      },
+      {
+        "command": "extension-guard.search",
+        "title": "Extension Guard: Search Extensions",
+        "icon": "$(search)"
+      },
+      {
+        "command": "extension-guard.filter",
+        "title": "Extension Guard: Filter by Risk Level",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "extension-guard.clearFilters",
+        "title": "Extension Guard: Clear Filters",
+        "icon": "$(clear-all)"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "extension-guard.search",
+          "when": "view == extensionGuardView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "extension-guard.filter",
+          "when": "view == extensionGuardView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "extension-guard.scan",
+          "when": "view == extensionGuardView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "extension-guard.showReport",
+          "when": "view == extensionGuardView",
+          "group": "navigation@4"
+        }
+      ]
+    }
   },
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",

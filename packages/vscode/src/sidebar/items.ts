@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 import { ScanResult, Finding } from '@aspect-guard/core';
 
 export class OverviewItem extends vscode.TreeItem {
-  constructor(trustScore: number, extensionCount: number) {
+  constructor(trustScore: number, extensionCount: number, filterSuffix: string = '') {
     super(`Overview`, vscode.TreeItemCollapsibleState.None);
-    this.description = `Trust Score: ${trustScore}/100 (${extensionCount} extensions)`;
+    this.description = `Trust Score: ${trustScore}/100 (${extensionCount} extensions)${filterSuffix}`;
     this.iconPath = new vscode.ThemeIcon('graph');
     this.contextValue = 'overview';
   }

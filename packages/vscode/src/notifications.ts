@@ -1,6 +1,34 @@
 import * as vscode from 'vscode';
 import { ScanResult } from '@aspect-guard/core';
 
+const GITHUB_REPO_URL = 'https://github.com/astroicers/extension-guard';
+const GLOBAL_STATE_KEY_WELCOMED = 'extensionGuard.welcomed';
+
+export async function showWelcomeMessage(context: vscode.ExtensionContext): Promise<void> {
+  const hasWelcomed = context.globalState.get<boolean>(GLOBAL_STATE_KEY_WELCOMED);
+
+  if (hasWelcomed) {
+    return;
+  }
+
+  const selection = await vscode.window.showInformationMessage(
+    'Welcome to Extension Guard! Protect your VS Code from malicious extensions. If you find it useful, please give us a ⭐ on GitHub!',
+    'Star on GitHub',
+    'Maybe Later'
+  );
+
+  if (selection === 'Star on GitHub') {
+    vscode.env.openExternal(vscode.Uri.parse(GITHUB_REPO_URL));
+  }
+
+  // Mark as welcomed regardless of selection
+  await context.globalState.update(GLOBAL_STATE_KEY_WELCOMED, true);
+}
+
+export function getGitHubRepoUrl(): string {
+  return GITHUB_REPO_URL;
+}
+
 export async function showRiskWarning(result: ScanResult): Promise<void> {
   const riskLevel = result.riskLevel;
 
